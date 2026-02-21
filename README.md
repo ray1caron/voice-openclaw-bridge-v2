@@ -28,19 +28,54 @@ Voice Input → STT → OpenClaw Agent → Response Filter → TTS → Voice Out
 git clone https://github.com/ray1caron/voice-openclaw-bridge-v2.git
 cd voice-openclaw-bridge-v2
 
-# 2. Run setup
-./scripts/setup.sh
+# 2. Install dependencies
+pip install -e "."
 
-# 3. Configure
-# Edit ~/.config/voice-bridge-v2/config.yaml
+# 3. Run first-time setup (detects audio devices)
+python scripts/setup.py
 
-# 4. Run
+# 4. Start the bridge
 python -m src.bridge.main
 ```
 
 ## Configuration
 
-See `config/default.yaml` for all options.
+Configuration is stored in `~/.voice-bridge/config.yaml` and supports:
+
+- **YAML config files** - Primary configuration
+- **Environment variables** - Override with `BRIDGE__SECTION__KEY` format
+- **.env file** - Load secrets from `~/.voice-bridge/.env`
+- **Hot-reload** - Changes detected automatically (always on)
+
+### First-Time Setup
+
+Run `python scripts/setup.py` to:
+- Detect audio input/output devices
+- Generate configuration with recommended devices
+- Create `.env` template for secrets
+
+### Manual Configuration
+
+Edit `~/.voice-bridge/config.yaml`:
+
+```yaml
+audio:
+  input_device: "Blue Yeti Nano"  # or device index
+  output_device: "USB Audio"
+  sample_rate: 16000
+
+stt:
+  model: "base"  # tiny, base, small, medium, large
+  language: null   # auto-detect if null
+
+openclaw:
+  host: "localhost"
+  port: 8080
+
+bridge:
+  wake_word: "hey hal"
+  hot_reload: true  # always on
+```
 
 ## Development
 
