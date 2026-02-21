@@ -255,3 +255,13 @@ def get_config() -> AppConfig:
     """Get or create the global configuration instance."""
     # This will be replaced with proper singleton management
     return AppConfig.load()
+
+
+def reload_config() -> AppConfig:
+    """Force reload configuration from disk.
+    
+    Returns:
+        Reloaded AppConfig instance
+    """
+    logger.info("Force reloading configuration")
+    return AppConfig.load()
