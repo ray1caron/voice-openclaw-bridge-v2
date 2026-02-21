@@ -76,16 +76,18 @@ systemd/         # Systemd service files
 
 ## Sprint Progress
 
+Track development on the [GitHub Project Board](https://github.com/ray1caron/voice-openclaw-bridge-v2/projects).
+
 | Sprint | Status | Progress |
 |--------|--------|----------|
-| Foundation | 🔄 Active | 0% |
+| Foundation | 🔄 In Backlog | 0% |
 | Tool Integration | ⏳ Planned | - |
 | Memory & Context | ⏳ Planned | - |
 | Polish | ⏳ Planned | - |
 
 ## Contributing
 
-See CONTRIBUTING.md for development guidelines.
+See CONTRIBUTING.md for development guidelines. Check [existing issues](https://github.com/ray1caron/voice-openclaw-bridge-v2/issues) before creating new ones.
 
 ## License
 
