@@ -189,6 +189,9 @@ class OpenClawWebSocketClient:
         self._shutdown_event = asyncio.Event()
         self._ping_task: Optional[asyncio.Task] = None
         
+        # Connection lock to prevent race conditions
+        self._connection_lock = asyncio.Lock()
+        
         logger.info(
             "WebSocket client initialized",
             url=self.url,
@@ -228,10 +231,16 @@ class OpenClawWebSocketClient:
         Establish WebSocket connection to OpenClaw.
         Returns True if successful, False otherwise.
         """
-        if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
-            logger.warning("Already connecting or connected")
-            return self.is_connected
-        
+        # Acquire lock to prevent concurrent connection attempts
+        async with self._connection_lock:
+            if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
+                logger.warning("Already connecting or connected")
+                return self.is_connected
+            
+            return await self._do_connect()
+    
+    async def _do_connect(self) -> bool:
+        """Internal connection logic (call with lock held)."""
         self._set_state(ConnectionState.CONNECTING)
         self._shutdown_event.clear()
         

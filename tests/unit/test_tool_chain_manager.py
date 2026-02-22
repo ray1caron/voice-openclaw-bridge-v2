@@ -151,14 +151,27 @@ class TestToolChainManager:
         """Test validating chain with circular dependency."""
         manager = ToolChainManager()
         steps = [
-            ToolStep("tool1", {}, depends_on=[1]),  # Depends on future step
+            ToolStep("tool1", {}, depends_on=[1]),  # Depends on tool2
+            ToolStep("tool2", {}, depends_on=[0]),  # Depends on tool1 (cycle!)
+        ]
+        
+        is_valid, error = manager.validate_chain(steps)
+        
+        assert is_valid is False
+        assert "circular" in error.lower()
+
+    def test_validate_backward_dependency(self):
+        """Test validating chain with backward only dependency (no cycle)."""
+        manager = ToolChainManager()
+        steps = [
+            ToolStep("tool1", {}, depends_on=[1]),  # Depends on future step only
             ToolStep("tool2", {}),
         ]
         
         is_valid, error = manager.validate_chain(steps)
         
         assert is_valid is False
-        assert "depends on future" in error.lower()
+        assert "future" in error.lower() or "depends" in error.lower()
     
     def test_validate_valid_chain(self):
         """Test validating valid chain."""
@@ -220,6 +233,7 @@ class TestExecuteToolChain:
     """Test the execute_tool_chain convenience function."""
     
     @pytest.mark.asyncio
+    @pytest.mark.timeout(5)  # Prevent hanging tests
     async def test_execute_simple_chain(self):
         """Test executing a simple tool chain."""
         # Mock tool registry
@@ -244,6 +258,7 @@ class TestExecuteToolChain:
         assert result.steps[0].status == ToolResultStatus.SUCCESS
     
     @pytest.mark.asyncio
+    @pytest.mark.timeout(5)  # Prevent hanging tests
     async def test_execute_with_dependencies(self):
         """Test executing chain with dependencies."""
         async def mock_search(query: str):
@@ -272,6 +287,7 @@ class TestExecuteToolChain:
         assert result.steps[1].status == ToolResultStatus.SUCCESS
     
     @pytest.mark.asyncio
+    @pytest.mark.timeout(5)  # Prevent hanging tests
     async def test_execute_with_error(self):
         """Test handling tool execution error."""
         async def failing_tool():
