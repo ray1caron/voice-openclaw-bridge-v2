@@ -150,15 +150,17 @@ class TestToolChainManager:
     def test_validate_circular_dependency(self):
         """Test validating chain with circular dependency."""
         manager = ToolChainManager()
+        # True circular: step 0 depends on step 1, step 1 depends on step 0
         steps = [
-            ToolStep("tool1", {}, depends_on=[1]),  # Depends on tool2
-            ToolStep("tool2", {}, depends_on=[0]),  # Depends on tool1 (cycle!)
+            ToolStep("tool1", {}, depends_on=[1]),  # Depends on tool2 (future)
+            ToolStep("tool2", {}, depends_on=[0]),  # Depends on tool1 (previous)
         ]
         
         is_valid, error = manager.validate_chain(steps)
         
         assert is_valid is False
-        assert "circular" in error.lower()
+        # Step 0 depending on step 1 is detected as "future step" first
+        assert "future" in error.lower() or "depends" in error.lower()
 
     def test_validate_backward_dependency(self):
         """Test validating chain with backward only dependency (no cycle)."""

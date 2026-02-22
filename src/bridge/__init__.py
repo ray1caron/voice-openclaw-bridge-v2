@@ -53,6 +53,13 @@ from bridge.tool_chain_manager import (
     ToolResultStatus,
     execute_tool_chain,
 )
+from bridge.bug_tracker import (
+    BugTracker,
+    BugSeverity,
+    BugStatus,
+    capture_bug,
+    install_global_handler,
+)
 
 __all__ = [
     "AppConfig",
@@ -98,4 +105,10 @@ __all__ = [
     "ToolChainState",
     "ToolResultStatus",
     "execute_tool_chain",
+    # Bug Tracker
+    "BugTracker",
+    "BugSeverity",
+    "BugStatus",
+    "capture_bug",
+    "install_global_handler",
 ]
