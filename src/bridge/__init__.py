@@ -32,6 +32,15 @@ from bridge.audio_pipeline import (
     PipelineState,
     PipelineStats,
 )
+from bridge.openclaw_middleware import (
+    OpenClawMiddleware,
+    MessageMetadata,
+    TaggedMessage,
+    MessageType,
+    Speakability,
+    mark_tool_call,
+    wrap_tool_execution,
+)
 
 __all__ = [
     "AppConfig",
@@ -59,4 +68,12 @@ __all__ = [
     "AudioDeviceType",
     "PipelineState",
     "PipelineStats",
+    # OpenClaw Middleware
+    "OpenClawMiddleware",
+    "MessageMetadata",
+    "TaggedMessage",
+    "MessageType",
+    "Speakability",
+    "mark_tool_call",
+    "wrap_tool_execution",
 ]
