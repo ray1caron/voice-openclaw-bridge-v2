@@ -115,7 +115,7 @@ Track development on the [GitHub Project Board](https://github.com/ray1caron/voi
 
 | Sprint | Status | Progress | Key Deliverables |
 |--------|--------|----------|------------------|
-| **Sprint 1** | 🔄 In Progress | 50% | #10 Config ✅, #1 WebSocket ✅, #2 Filtering, #3 Audio |
+| **Sprint 1** | 🔄 In Progress | 75% | #10 Config ✅, #1 WebSocket ✅, #2 Filtering ✅, #3 Audio |
 | Sprint 2 | ⏳ Planned | - | Tool Integration |
 | Sprint 3 | ⏳ Planned | - | Memory & Context |
 | Sprint 4 | ⏳ Planned | - | Polish & Docs |
@@ -135,10 +135,18 @@ Track development on the [GitHub Project Board](https://github.com/ray1caron/voi
   - Config integration via get_config()
   - Connection statistics tracking
   - Session restoration support
-  - 38 unit tests passing
+  - 53 tests passing (38 unit + 15 integration)
+
+- ✅ Issue #2: Response Filtering (COMPLETE)
+  - Message type detection (final, thinking, tool_call, planning)
+  - Heuristic pattern matching for "thinking" indicators
+  - Confidence scoring for ambiguous messages
+  - Queue management for response buffering
+  - ResponseFilterManager for TTS integration
+  - 26 unit tests passing
+  - 5 integration tests passing
 
 **In Progress:**
-- ⏳ Issue #2: Response Filtering
 - ⏳ Issue #3: Audio Pipeline
 
 ## Contributing
