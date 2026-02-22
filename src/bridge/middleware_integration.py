@@ -129,7 +129,7 @@ class MiddlewareResponseFilter:
     def _process_with_heuristics(self, message: Dict[str, Any]) -> FilteredMessage:
         """Process message using existing heuristic filter."""
         self.heuristic_filtered += 1
-        return self.response_filter.process(message)
+        return self.response_filter.filter_message(message)
     
     def get_stats(self) -> Dict[str, Any]:
         """Get combined statistics."""
