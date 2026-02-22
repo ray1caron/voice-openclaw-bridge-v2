@@ -14,6 +14,24 @@ from bridge.response_filter import (
     FilterDecision,
     FilteredMessage,
 )
+from bridge.audio_buffer import AudioBuffer
+from bridge.vad import (
+    WebRTCVAD,
+    VADConfig,
+    VADMode,
+    VADState,
+    SpeechSegmenter,
+    SpeechSegment,
+    MockVAD,
+)
+from bridge.audio_pipeline import (
+    AudioPipeline,
+    AudioDeviceManager,
+    AudioDeviceInfo,
+    AudioDeviceType,
+    PipelineState,
+    PipelineStats,
+)
 
 __all__ = [
     "AppConfig",
@@ -27,4 +45,18 @@ __all__ = [
     "ResponseType",
     "FilterDecision",
     "FilteredMessage",
+    "AudioBuffer",
+    "WebRTCVAD",
+    "VADConfig",
+    "VADMode",
+    "VADState",
+    "SpeechSegmenter",
+    "SpeechSegment",
+    "MockVAD",
+    "AudioPipeline",
+    "AudioDeviceManager",
+    "AudioDeviceInfo",
+    "AudioDeviceType",
+    "PipelineState",
+    "PipelineStats",
 ]
