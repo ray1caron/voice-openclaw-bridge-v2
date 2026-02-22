@@ -137,14 +137,14 @@ Track development on the [GitHub Project Board](https://github.com/ray1caron/voi
   - Session restoration support
   - 53 tests passing (38 unit + 15 integration)
 
-- ✅ Issue #2: Response Filtering (COMPLETE)
-  - Message type detection (final, thinking, tool_call, planning)
-  - Heuristic pattern matching for "thinking" indicators
+- ✅ Issue #2: Response Filtering (PR #15 ready)
+  - Message type detection (final, thinking, tool_call, planning, progress, error)
+  - Heuristic pattern matching (15+ regex patterns)
   - Confidence scoring for ambiguous messages
   - Queue management for response buffering
   - ResponseFilterManager for TTS integration
-  - 26 unit tests passing
-  - 5 integration tests passing
+  - Statistics tracking (speak rate, type counts)
+  - 39 unit tests passing
 
 **In Progress:**
 - ⏳ Issue #3: Audio Pipeline
