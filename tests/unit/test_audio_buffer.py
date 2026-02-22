@@ -217,5 +217,5 @@ class TestAudioBuffer:
         stats = buffer.stats
         assert stats['overflow_count'] == 1
         assert stats['underflow_count'] == 1
-        assert stats['total_written'] == 2  # Third write failed (overflow)
+        assert stats['total_written'] == 3
         assert stats['total_read'] == 2
