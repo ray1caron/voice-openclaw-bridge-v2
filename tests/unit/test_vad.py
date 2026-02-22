@@ -15,6 +15,11 @@ from bridge.vad import (
     SpeechSegment,
     MockVAD,
 )
+from bridge.audio_pipeline import (
+    AudioDeviceManager,
+    AudioDeviceInfo,
+    AudioDeviceType,
+)
 
 
 class TestVADConfig:
