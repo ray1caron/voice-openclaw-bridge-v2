@@ -397,7 +397,14 @@ class TestAudioDeviceManager:
         """Test listing devices with type filter."""
         from bridge.audio_pipeline import AudioDeviceInfo, AudioDeviceType
         
+        # Mock sounddevice to prevent real device detection
+        import sounddevice as sd
+        monkeypatch.setattr(sd, 'query_devices', lambda: [])
+        
         manager = AudioDeviceManager()
+        
+        # Clear any devices and add test devices
+        manager._devices.clear()
         
         # Add mixed devices
         manager._devices[0] = AudioDeviceInfo(
@@ -431,7 +438,14 @@ class TestAudioDeviceManager:
         """Test that default device appears first in list."""
         from bridge.audio_pipeline import AudioDeviceInfo, AudioDeviceType
         
+        # Mock sounddevice to prevent real device detection
+        import sounddevice as sd
+        monkeypatch.setattr(sd, 'query_devices', lambda: [])
+        
         manager = AudioDeviceManager()
+        
+        # Clear any devices and add test devices
+        manager._devices.clear()
         
         # Add devices with default last
         manager._devices[0] = AudioDeviceInfo(
