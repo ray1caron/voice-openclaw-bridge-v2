@@ -28,19 +28,54 @@ Voice Input → STT → OpenClaw Agent → Response Filter → TTS → Voice Out
 git clone https://github.com/ray1caron/voice-openclaw-bridge-v2.git
 cd voice-openclaw-bridge-v2
 
-# 2. Run setup
-./scripts/setup.sh
+# 2. Install dependencies
+pip install -e "."
 
-# 3. Configure
-# Edit ~/.config/voice-bridge-v2/config.yaml
+# 3. Run first-time setup (detects audio devices)
+python scripts/setup.py
 
-# 4. Run
+# 4. Start the bridge
 python -m src.bridge.main
 ```
 
 ## Configuration
 
-See `config/default.yaml` for all options.
+Configuration is stored in `~/.voice-bridge/config.yaml` and supports:
+
+- **YAML config files** - Primary configuration
+- **Environment variables** - Override with `BRIDGE__SECTION__KEY` format
+- **.env file** - Load secrets from `~/.voice-bridge/.env`
+- **Hot-reload** - Changes detected automatically (always on)
+
+### First-Time Setup
+
+Run `python scripts/setup.py` to:
+- Detect audio input/output devices
+- Generate configuration with recommended devices
+- Create `.env` template for secrets
+
+### Manual Configuration
+
+Edit `~/.voice-bridge/config.yaml`:
+
+```yaml
+audio:
+  input_device: "Blue Yeti Nano"  # or device index
+  output_device: "USB Audio"
+  sample_rate: 16000
+
+stt:
+  model: "base"  # tiny, base, small, medium, large
+  language: null   # auto-detect if null
+
+openclaw:
+  host: "localhost"
+  port: 8080
+
+bridge:
+  wake_word: "hey hal"
+  hot_reload: true  # always on
+```
 
 ## Development
 
@@ -78,12 +113,33 @@ systemd/         # Systemd service files
 
 Track development on the [GitHub Project Board](https://github.com/ray1caron/voice-openclaw-bridge-v2/projects).
 
-| Sprint | Status | Progress |
-|--------|--------|----------|
-| Foundation | 🔄 In Backlog | 0% |
-| Tool Integration | ⏳ Planned | - |
-| Memory & Context | ⏳ Planned | - |
-| Polish | ⏳ Planned | - |
+| Sprint | Status | Progress | Key Deliverables |
+|--------|--------|----------|------------------|
+| **Sprint 1** | 🔄 In Progress | 50% | #10 Config ✅, #1 WebSocket ✅, #2 Filtering, #3 Audio |
+| Sprint 2 | ⏳ Planned | - | Tool Integration |
+| Sprint 3 | ⏳ Planned | - | Memory & Context |
+| Sprint 4 | ⏳ Planned | - | Polish & Docs |
+
+### Current: Sprint 1 - Foundation
+
+**Completed:**
+- ✅ Issue #10: Configuration System (PR #13 merged)
+  - YAML config with hot-reload
+  - Audio device discovery
+  - Environment variables + .env support
+  - 28/28 tests passing
+
+- ✅ Issue #1: WebSocket Client (PR #14 ready)
+  - Connection state machine (5 states)
+  - Message protocol validation
+  - Config integration via get_config()
+  - Connection statistics tracking
+  - Session restoration support
+  - 38 unit tests passing
+
+**In Progress:**
+- ⏳ Issue #2: Response Filtering
+- ⏳ Issue #3: Audio Pipeline
 
 ## Contributing
 
