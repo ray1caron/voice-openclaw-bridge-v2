@@ -249,6 +249,30 @@ class AppConfig(BaseSettings):
     def on_reload(self, callback: callable) -> None:
         """Register a callback to be called when config is reloaded."""
         self._on_reload.append(callback)
+    
+    def remove_reload_callback(self, callback: callable) -> bool:
+        """Remove a reload callback.
+        
+        Args:
+            callback: The callback to remove
+            
+        Returns:
+            True if callback was found and removed, False otherwise
+        """
+        if callback in self._on_reload:
+            self._on_reload.remove(callback)
+            return True
+        return False
+    
+    def clear_reload_callbacks(self) -> int:
+        """Clear all reload callbacks.
+        
+        Returns:
+            Number of callbacks removed
+        """
+        count = len(self._on_reload)
+        self._on_reload.clear()
+        return count
 
 
 def get_config() -> AppConfig:

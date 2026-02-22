@@ -324,6 +324,9 @@ class ResponseFilter:
         confidence: float,
     ) -> float:
         """Calculate a 0-1 score for how likely this should be spoken."""
+        # Clamp confidence to valid range
+        confidence = max(0.0, min(1.0, confidence))
+        
         if response_type == ResponseType.FINAL:
             return 1.0
         if response_type in (ResponseType.TOOL_CALL, ResponseType.PLANNING, ResponseType.THINKING):
@@ -340,8 +343,11 @@ class ResponseFilter:
         if text.endswith((".", "!", "?")):
             punct_score = 0.3
         
-        # Combine
-        return (confidence * 0.6) + (length_score * 0.2) + (punct_score * 0.2)
+        # Combine scores
+        final_score = (confidence * 0.6) + (length_score * 0.2) + (punct_score * 0.2)
+        
+        # Ensure result is clamped
+        return max(0.0, min(1.0, final_score))
     
     def get_next_to_speak(self) -> Optional[FilteredMessage]:
         """
