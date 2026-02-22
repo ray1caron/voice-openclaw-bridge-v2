@@ -13,6 +13,21 @@ Voice Input → STT → OpenClaw Agent → Response Filter → TTS → Voice Out
 
 **Key Innovation:** Only final responses are spoken. Tool calls, thinking, and planning happen silently.
 
+## Sprint Status
+
+**Sprint 1: Foundation - 100% Complete ✅**
+
+| Issue | Component | Status | PR |
+|-------|-----------|--------|-----|
+| #10 | Configuration System | ✅ Merged | #13 |
+| #1 | WebSocket Client | ✅ Merged | #14 |
+| #2 | Response Filtering | ✅ Merged | #15 |
+| #3 | Audio Pipeline | ✅ Merged | #16 |
+
+**Total:** 4/4 issues, 120+ tests passing
+
+**Next:** Sprint 2 - Tool Integration (Issues #5, #6)
+
 ## Requirements
 
 - Python 3.10+
