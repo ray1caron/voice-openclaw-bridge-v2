@@ -41,6 +41,18 @@ from bridge.openclaw_middleware import (
     mark_tool_call,
     wrap_tool_execution,
 )
+from bridge.middleware_integration import (
+    MiddlewareResponseFilter,
+    filter_message,
+)
+from bridge.tool_chain_manager import (
+    ToolChainManager,
+    ToolStep,
+    ToolChainResult,
+    ToolChainState,
+    ToolResultStatus,
+    execute_tool_chain,
+)
 
 __all__ = [
     "AppConfig",
@@ -76,4 +88,14 @@ __all__ = [
     "Speakability",
     "mark_tool_call",
     "wrap_tool_execution",
+    # Middleware Integration
+    "MiddlewareResponseFilter",
+    "filter_message",
+    # Tool Chain Manager
+    "ToolChainManager",
+    "ToolStep",
+    "ToolChainResult",
+    "ToolChainState",
+    "ToolResultStatus",
+    "execute_tool_chain",
 ]
