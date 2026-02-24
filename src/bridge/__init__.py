@@ -60,6 +60,37 @@ from bridge.bug_tracker import (
     capture_bug,
     install_global_handler,
 )
+# Sprint 3: Conversation Persistence
+from bridge.conversation_store import (
+    ConversationStore,
+    get_conversation_store,
+    get_session_db_path,
+)
+from bridge.session_manager import (
+    SessionManager,
+    Session,
+    SessionState,
+    SessionError,
+    get_session_manager,
+)
+from bridge.history_manager import (
+    HistoryManager,
+    ConversationTurn,
+    ConversationSession,
+    get_history_manager,
+)
+from bridge.context_window import (
+    ContextWindow,
+    ContextMessage,
+    ContextWindowManager,
+    get_context_manager,
+)
+from bridge.session_recovery import (
+    SessionRecovery,
+    RecoveryStatus,
+    RecoveryResult,
+    get_session_recovery,
+)
 
 __all__ = [
     "AppConfig",
@@ -111,4 +142,25 @@ __all__ = [
     "BugStatus",
     "capture_bug",
     "install_global_handler",
+    # Conversation Persistence (Sprint 3)
+    "ConversationStore",
+    "get_conversation_store",
+    "get_session_db_path",
+    "SessionManager",
+    "Session",
+    "SessionState",
+    "SessionError",
+    "get_session_manager",
+    "HistoryManager",
+    "ConversationTurn",
+    "ConversationSession",
+    "get_history_manager",
+    "ContextWindow",
+    "ContextMessage",
+    "ContextWindowManager",
+    "get_context_manager",
+    "SessionRecovery",
+    "RecoveryStatus",
+    "RecoveryResult",
+    "get_session_recovery",
 ]
