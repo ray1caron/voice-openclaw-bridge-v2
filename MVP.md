@@ -71,12 +71,13 @@ The MVP is **not** a polished consumer product. It's a functional prototype that
 | First-time setup script | 1 | ✅ Complete |
 | Hot-reload config | 1 | ✅ Complete |
 
-### Conversation Persistence (Pending)
+### Conversation Persistence (In Progress)
 | Feature | Sprint | Status |
 |---------|--------|--------|
-| SQLite session storage | 3 | ⏳ Planned |
-| Conversation history | 3 | ⏳ Planned |
-| Context across sessions | 3 | ⏳ Planned |
+| SQLite session storage | 3 | ✅ Complete |
+| Conversation history | 3 | ✅ Complete |
+| Context across sessions | 3 | ✅ Complete |
+| Session recovery | 3 | ✅ Complete |
 
 ### Polish & Robustness (Pending)
 | Feature | Sprint | Status |
@@ -262,11 +263,33 @@ An MVP feature is "done" when:
 
 ## Current Status
 
-**Date:** 2026-02-22  
-**Phase:** Sprint 2 Complete, Sprint 3 Pending  
-**Progress:** ~60% to MVP  
+**Date:** 2026-02-24  
+**Phase:** Sprint 3 In Progress  
+**Progress:** ~75% to MVP  
 **Blockers:** None  
-**Next Milestone:** Sprint 3 (Conversation Persistence)  
+**Next Milestone:** Sprint 3 completion (integration testing)
+
+---
+
+## Sprint Summary
+
+### Sprint 1: Foundation ✅ COMPLETE
+- Configuration System (#10)
+- WebSocket Client (#1)
+- Response Filtering (#2)
+- Audio Pipeline (#3)
+
+### Sprint 2: Tool Integration ✅ COMPLETE  
+- OpenClaw Middleware (#17)
+- Multi-Step Tool Handling (#18)
+- Bug Tracking System
+
+### Sprint 3: Conversation Persistence 🔄 IN PROGRESS
+- Session Management (core complete)
+- Conversation History (core complete)
+- Context Window Management (core complete)
+- Session Recovery (core complete)
+- Integration testing (pending)  
 
 ---
 

@@ -15,18 +15,17 @@ Voice Input → STT → OpenClaw Agent → Response Filter → TTS → Voice Out
 
 ## Sprint Status
 
-**Sprint 1: Foundation - 100% Complete ✅**
+**Sprint 2: Tool Integration - 100% Complete ✅**
 
 | Issue | Component | Status | PR |
 |-------|-----------|--------|-----|
-| #10 | Configuration System | ✅ Merged | #13 |
-| #1 | WebSocket Client | ✅ Merged | #14 |
-| #2 | Response Filtering | ✅ Merged | #15 |
-| #3 | Audio Pipeline | ✅ Merged | #16 |
+| #17 | OpenClaw Middleware | ✅ Complete | #19 |
+| #18 | Multi-Step Tool Handling | ✅ Complete | #19 |
+| #8 | Bug Tracking System | ✅ Complete | - |
 
-**Total:** 4/4 issues, 120+ tests passing
+**Total:** 2/2 issues + bug tracker, 250+ tests passing
 
-**Next:** Sprint 2 - Tool Integration (Issues #5, #6)
+**Current:** Sprint 3 - Conversation Persistence (Issue #7)
 
 ## Requirements
 
@@ -130,39 +129,40 @@ Track development on the [GitHub Project Board](https://github.com/ray1caron/voi
 
 | Sprint | Status | Progress | Key Deliverables |
 |--------|--------|----------|------------------|
-| **Sprint 1** | 🔄 In Progress | 75% | #10 Config ✅, #1 WebSocket ✅, #2 Filtering ✅, #3 Audio |
-| Sprint 2 | ⏳ Planned | - | Tool Integration |
-| Sprint 3 | ⏳ Planned | - | Memory & Context |
-| Sprint 4 | ⏳ Planned | - | Polish & Docs |
+| **Sprint 1** | ✅ Complete | 100% | #10 Config, #1 WebSocket, #2 Filtering, #3 Audio |
+| **Sprint 2** | ✅ Complete | 100% | #17 Middleware, #18 Tool Chains, Bug Tracker |
+| **Sprint 3** | 🔄 In Progress | 70% | #7 Conversation Persistence |
+| Sprint 4 | ⏳ Planned | - | Interruption, Polish |
 
-### Current: Sprint 1 - Foundation
+### Current: Sprint 3 - Conversation Persistence
 
 **Completed:**
-- ✅ Issue #10: Configuration System (PR #13 merged)
-  - YAML config with hot-reload
-  - Audio device discovery
-  - Environment variables + .env support
-  - 28/28 tests passing
-
-- ✅ Issue #1: WebSocket Client (PR #14 ready)
-  - Connection state machine (5 states)
-  - Message protocol validation
-  - Config integration via get_config()
-  - Connection statistics tracking
-  - Session restoration support
-  - 53 tests passing (38 unit + 15 integration)
-
-- ✅ Issue #2: Response Filtering (PR #15 ready)
-  - Message type detection (final, thinking, tool_call, planning, progress, error)
-  - Heuristic pattern matching (15+ regex patterns)
-  - Confidence scoring for ambiguous messages
-  - Queue management for response buffering
-  - ResponseFilterManager for TTS integration
-  - Statistics tracking (speak rate, type counts)
-  - 39 unit tests passing
+- ✅ Issue #7: Session Management (In Progress)
+  - SQLite database schema with migrations
+  - Session CRUD operations with UUID tracking
+  - Conversation turn storage
+  - Context window management with pruning
+  - Session recovery after disconnects
 
 **In Progress:**
-- ⏳ Issue #3: Audio Pipeline
+- ⏳ Issue #7: Testing & Integration
+  - 93 new tests created (debugging collection issues)
+  - WebSocket client integration pending
+  - Context persistence verification
+
+**Files Added:**
+- `src/bridge/conversation_store.py` (~400 lines)
+- `src/bridge/session_manager.py` (~550 lines)
+- `src/bridge/history_manager.py` (~600 lines)
+- `src/bridge/context_window.py` (~450 lines)
+- `src/bridge/session_recovery.py` (~500 lines)
+- `tests/unit/test_session_manager.py` (~600 lines)
+- `tests/unit/test_history_manager.py` (~700 lines)
+- `tests/unit/test_context_window.py` (~600 lines)
+- `tests/unit/test_session_recovery.py` (~650 lines)
+
+**Previous Sprints:**
+- See SPRINT2_PROGRESS.md for Sprint 2 details
 
 ## Contributing
 
