@@ -131,9 +131,20 @@ class TestHistoryManager:
         """Mock conversation store."""
         with patch('bridge.history_manager.get_conversation_store') as mock:
             store = Mock()
-            store._get_connection = MagicMock().__enter__ = MagicMock()
             mock.return_value = store
             yield store
+
+    def _create_mock_conn(self, fetchall_result=None, fetchone_result=None, rowcount=1):
+        """Helper to create properly configured mock connection."""
+        mock_conn = MagicMock()
+        mock_cursor = Mock()
+        mock_cursor.fetchall.return_value = fetchall_result or []
+        mock_cursor.fetchone.return_value = fetchone_result
+        mock_cursor.rowcount = rowcount
+        mock_conn.execute.return_value = mock_cursor
+        mock_conn.__enter__ = Mock(return_value=mock_conn)
+        mock_conn.__exit__ = Mock(return_value=False)
+        return mock_conn
     
     def test_add_turn(self, mock_session_manager):
         """Test adding conversation turn."""
@@ -215,10 +226,7 @@ class TestHistoryManager:
              'speakability': None, 'tool_calls': None}
         ]
         
-        mock_conn = MagicMock()
-        mock_cursor = Mock()
-        mock_cursor.fetchall.return_value = mock_rows
-        mock_conn.execute.return_value = mock_cursor
+        mock_conn = self._create_mock_conn(fetchall_result=mock_rows)
         
         with patch.object(manager.store, '_get_connection', return_value=mock_conn):
             turns = manager.get_session_turns("test-uuid")
@@ -253,10 +261,7 @@ class TestHistoryManager:
              'state': 'active'}
         ]
         
-        mock_conn = MagicMock()
-        mock_cursor = Mock()
-        mock_cursor.fetchall.return_value = mock_rows
-        mock_conn.execute.return_value = mock_cursor
+        mock_conn = self._create_mock_conn(fetchall_result=mock_rows)
         
         with patch.object(manager.store, '_get_connection', return_value=mock_conn):
             results = manager.search_conversations("world")
@@ -290,23 +295,22 @@ class TestHistoryManager:
         """Test getting conversation stats."""
         manager = HistoryManager()
         
-        with patch.object(manager.store, '_get_connection') as mock_conn_ctx:
-            mock_conn = MagicMock()
-            mock_cursor = Mock()
-            
-            # Total turns count
-            mock_cursor.fetchone.side_effect = [
-                [5],  # Total turns
-                None  # By role results
-            ]
-            mock_cursor.fetchall.return_value = [
-                ('user', 3), ('assistant', 2)
-            ]
-            
-            mock_conn.execute.return_value = mock_cursor
-            mock_conn_ctx.return_value.__enter__ = MagicMock(return_value=mock_conn)
-            mock_conn_ctx.return_value.__exit__ = MagicMock(return_value=False)
-            
+        # Use helper to create proper mock
+        mock_cursor = Mock()
+        mock_cursor.fetchone.side_effect = [
+            [5],  # Total turns
+            [0]   # Pending tools
+        ]
+        mock_cursor.fetchall.return_value = [
+            ('user', 3), ('assistant', 2)
+        ]
+        
+        mock_conn = MagicMock()
+        mock_conn.execute.return_value = mock_cursor
+        mock_conn.__enter__ = Mock(return_value=mock_conn)
+        mock_conn.__exit__ = Mock(return_value=False)
+        
+        with patch.object(manager.store, '_get_connection', return_value=mock_conn):
             stats = manager.get_conversation_stats("test-uuid")
             
             assert stats['session_uuid'] == "test-uuid"
@@ -390,16 +394,16 @@ class TestHistoryManager:
         """Test deleting all turns for session."""
         manager = HistoryManager()
         
-        # Setup proper context manager mock
-        mock_conn = MagicMock()
+        # Use helper to create proper mock
         mock_cursor = Mock()
         mock_cursor.rowcount = 5
-        mock_conn.execute.return_value = mock_cursor
         
-        with patch.object(manager.store, '_get_connection') as mock_get_conn:
-            mock_get_conn.return_value.__enter__ = Mock(return_value=mock_conn)
-            mock_get_conn.return_value.__exit__ = Mock(return_value=False)
-            
+        mock_conn = MagicMock()
+        mock_conn.execute.return_value = mock_cursor
+        mock_conn.__enter__ = Mock(return_value=mock_conn)
+        mock_conn.__exit__ = Mock(return_value=False)
+        
+        with patch.object(manager.store, '_get_connection', return_value=mock_conn):
             count = manager.delete_turns_for_session("test-uuid")
             
             assert count == 5
