@@ -280,9 +280,11 @@ class TestHistoryManager:
                 end_date="2024-01-31T23:59:59"
             )
             
-            # Should include date constraints in query
-            call_args = mock_conn.execute.call_args
-            assert call_args is not None
+            # Search should return empty list (no errors)
+            assert results == []
+            # Execute was called
+            assert mock_conn.execute.called
+            
             
     def test_get_conversation_stats(self, mock_session_manager):
         """Test getting conversation stats."""
@@ -388,12 +390,16 @@ class TestHistoryManager:
         """Test deleting all turns for session."""
         manager = HistoryManager()
         
+        # Setup proper context manager mock
         mock_conn = MagicMock()
         mock_cursor = Mock()
         mock_cursor.rowcount = 5
         mock_conn.execute.return_value = mock_cursor
         
-        with patch.object(manager.store, '_get_connection', return_value=mock_conn):
+        with patch.object(manager.store, '_get_connection') as mock_get_conn:
+            mock_get_conn.return_value.__enter__ = Mock(return_value=mock_conn)
+            mock_get_conn.return_value.__exit__ = Mock(return_value=False)
+            
             count = manager.delete_turns_for_session("test-uuid")
             
             assert count == 5

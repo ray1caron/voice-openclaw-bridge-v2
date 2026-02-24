@@ -128,26 +128,29 @@ class ContextWindow:
     def add_user_message(
         self,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        persist: bool = True
     ) -> "ContextWindow":
         """Add user message."""
-        return self.add_message('user', content, metadata)
+        return self.add_message('user', content, metadata, persist)
     
     def add_assistant_message(
         self,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        persist: bool = True
     ) -> "ContextWindow":
         """Add assistant message."""
-        return self.add_message('assistant', content, metadata)
+        return self.add_message('assistant', content, metadata, persist)
     
     def add_system_message(
         self,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        persist: bool = True
     ) -> "ContextWindow":
         """Add system message."""
-        return self.add_message('system', content, metadata)
+        return self.add_message('system', content, metadata, persist)
     
     def _prune_if_needed(self):
         """Prune context window if it exceeds limits."""

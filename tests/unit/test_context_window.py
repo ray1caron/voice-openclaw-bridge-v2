@@ -332,7 +332,10 @@ class TestContextWindowManager:
         
     def test_get_or_create_new(self):
         """Test creating new window."""
-        with patch('bridge.context_window.ContextWindow.load'):
+        # Create a real ContextWindow that will be "loaded"
+        real_window = ContextWindow(session_uuid="test-uuid", session_id=1)
+        
+        with patch('bridge.context_window.ContextWindow.load', return_value=real_window):
             manager = ContextWindowManager()
             window = manager.get_or_create("test-uuid", session_id=1)
             

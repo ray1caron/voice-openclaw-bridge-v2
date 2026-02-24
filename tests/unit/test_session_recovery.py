@@ -218,26 +218,30 @@ class TestSessionRecovery:
         
         assert context is not None
         
-    def test_recover_tools(self, mock_session_manager, mock_store):
+    def test_recover_tools(self, mock_session_manager):
         """Test tool execution recovery."""
         recovery = SessionRecovery()
         result = RecoveryResult(status=RecoveryStatus.SUCCESS)
         
-        # Mock running tool
+        # Create proper mock store with context manager
+        store_mock = MagicMock()
         mock_conn = MagicMock()
         mock_cursor = Mock()
         mock_cursor.fetchall.return_value = [
             {'id': 1, 'tool_name': 'test_tool', 'tool_index': 0}
         ]
+        mock_cursor.rowcount = 1  # For update operations
         mock_conn.execute.return_value = mock_cursor
+        mock_conn.__enter__ = Mock(return_value=mock_conn)
+        mock_conn.__exit__ = Mock(return_value=False)
+        store_mock._get_connection = Mock(return_value=mock_conn)
         
-        with patch.object(mock_store, '_get_connection', return_value=mock_conn):
-            with patch.object(recovery, 'store', mock_store):
-                state = recovery._recover_tools(1, result)
-                
-                assert state is not None
-                assert state['recovered_count'] == 1
-                assert "cancelled" in str(result.warnings).lower()
+        with patch.object(recovery, 'store', store_mock):
+            state = recovery._recover_tools(1, result)
+            
+            assert state is not None
+            assert state['recovered_count'] == 1
+            assert "cancelled" in str(result.warnings).lower()
                 
     def test_get_recovery_candidates(self, mock_session_manager):
         """Test finding recovery candidates."""

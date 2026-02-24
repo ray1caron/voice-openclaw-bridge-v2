@@ -483,3 +483,19 @@ async def execute_tool_chain(
         on_step_complete=on_step_complete,
     )
     return await manager.execute_chain(steps, tool_registry)
+
+
+# Global manager instance
+_tool_chain_manager: Optional[ToolChainManager] = None
+
+
+def get_tool_chain_manager() -> ToolChainManager:
+    """Get or create global tool chain manager.
+    
+    Returns:
+        ToolChainManager instance
+    """
+    global _tool_chain_manager
+    if _tool_chain_manager is None:
+        _tool_chain_manager = ToolChainManager()
+    return _tool_chain_manager
