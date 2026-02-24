@@ -433,6 +433,9 @@ class SessionManager:
                 return existing
         
         return self.create_session(metadata)
+    
+    # Alias for convenience
+    get_or_create = get_or_create_session
 
 
 # Global manager instance
