@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+import threading
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -187,6 +188,7 @@ class BugTracker:
         
         self.github_token = github_token
         self.github_repo = "ray1caron/voice-openclaw-bridge-v2"
+        self.auto_upload_enabled = False  # Auto-create GitHub issues for HIGH/CRITICAL
         
         self._init_db()
         
@@ -293,13 +295,26 @@ class BugTracker:
             error_message=str(error)[:200],
         )
         
-        # Auto-file GitHub issue if enabled
-        if auto_file_github and self.github_token:
+        # Auto-file GitHub issue if enabled (explicit or auto_upload for HIGH/CRITICAL)
+        should_file_github = auto_file_github or (
+            self.github_enabled and 
+            self.auto_upload_enabled and 
+            severity in (BugSeverity.HIGH, BugSeverity.CRITICAL)
+        )
+        
+        if should_file_github and self.github_token:
             try:
                 issue_num = self._create_github_issue(bug)
                 self._update_bug_github_link(bug_id, issue_num)
             except Exception as e:
                 logger.error("github_issue_creation_failed", error=str(e))
+        elif self.auto_upload_enabled and self.github_token and severity in (BugSeverity.HIGH, BugSeverity.CRITICAL):
+            # Background upload for auto-upload mode
+            threading.Thread(
+                target=self._async_upload_to_github,
+                args=(bug_id,),
+                daemon=True
+            ).start()
         
         return bug_id
     
@@ -359,6 +374,51 @@ class BugTracker:
             return response.json()["number"]
         else:
             raise Exception(f"GitHub API error: {response.status_code} - {response.text}")
+    
+    def _async_upload_to_github(self, bug_id: int) -> None:
+        """Upload bug to GitHub asynchronously in background thread.
+        
+        Args:
+            bug_id: Bug ID to upload
+        """
+        try:
+            bug = self.get_bug(bug_id)
+            if bug and not bug.github_issue:
+                issue_num = self._create_github_issue(bug)
+                self._update_bug_github_link(bug_id, issue_num)
+                logger.info(
+                    "github_issue_created",
+                    bug_id=bug_id,
+                    issue_num=issue_num,
+                    repo=self.github_repo
+                )
+        except Exception as e:
+            logger.error("async_github_upload_failed", bug_id=bug_id, error=str(e))
+    
+    def enable_github_upload(
+        self, 
+        repo: str, 
+        token: Optional[str] = None,
+        auto_upload: bool = False
+    ) -> None:
+        """Enable GitHub issue creation with optional auto-upload.
+        
+        Args:
+            repo: GitHub repository (e.g., "owner/repo")
+            token: GitHub personal access token (or GITHUB_TOKEN env var)
+            auto_upload: Automatically create GitHub issues for HIGH/CRITICAL bugs
+        """
+        import os
+        self.github_token = token or os.getenv("GITHUB_TOKEN")
+        self.github_repo = repo
+        self.github_enabled = True
+        self.auto_upload_enabled = auto_upload
+        logger.info(
+            "github_upload_enabled",
+            repo=repo,
+            auto_upload=auto_upload,
+            has_token=bool(self.github_token)
+        )
     
     def get_bug(self, bug_id: int) -> Optional[BugReport]:
         """Get a bug report by ID."""
