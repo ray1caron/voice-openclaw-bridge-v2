@@ -159,7 +159,7 @@ class ResponseFilter:
             response_type=response_type,
             decision=decision,
             confidence=confidence,
-            filtered_text=text if decision == FilterDecision.SPEAK else None,
+            filtered_text=text,
             speak_score=self._calculate_speak_score(message, text, response_type, confidence),
         )
         
