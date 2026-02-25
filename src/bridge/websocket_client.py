@@ -202,6 +202,10 @@ class OpenClawWebSocketClient:
         config_obj = get_config()
         self.enable_persistence = config_obj.persistence.enabled
         
+        # Session recovery (Issue #23)
+        self.previous_session_uuid: Optional[str] = None
+        self.should_restore_session: bool = False
+        self._recovery_result: Optional[Any] = None
         
         # Message handlers
         self.on_message = on_message
@@ -324,8 +328,43 @@ class OpenClawWebSocketClient:
                     except Exception as e:
                         logger.error("Connect callback failed", error=str(e))
                 
+                # Sprint 3 Phase 3: Restore session on reconnect (Issue #23)
+                if self.enable_persistence and self.should_restore_session and self.previous_session_uuid:
+                    try:
+                        from bridge.session_recovery import get_session_recovery
+                        recovery = get_session_recovery()
+                        result = recovery.restore_from_websocket_disconnect(
+                            self.previous_session_uuid
+                        )
+                        self._recovery_result = result
+                        
+                        if result.is_successful():
+                            self.voice_session_id = result.session_uuid
+                            logger.info(
+                                "Session restored after reconnect",
+                                voice_session_id=self.voice_session_id,
+                                recovered_turns=result.recovered_turns,
+                                status=result.status.value,
+                            )
+                            # Reset recovery flags
+                            self.should_restore_session = False
+                            self.previous_session_uuid = None
+                        else:
+                            logger.warning(
+                                "Session recovery failed, starting fresh",
+                                previous_session=self.previous_session_uuid,
+                                reason=result.message,
+                            )
+                            # Fall through to create new session
+                            self.should_restore_session = False
+                            self.previous_session_uuid = None
+                    except Exception as e:
+                        logger.error("Session recovery failed", error=str(e))
+                        self.should_restore_session = False
+                        self.previous_session_uuid = None
+                
                 # Sprint 3 Phase 1: Create bridge session on connect (Issue #20)
-                if self.enable_persistence:
+                if self.enable_persistence and not self.voice_session_id:
                     try:
                         session_mgr = _get_session_manager()
                         metadata = {
@@ -431,6 +470,15 @@ class OpenClawWebSocketClient:
             self.websocket = None
         
         self._set_state(ConnectionState.DISCONNECTED)
+        
+        # Sprint 3 Phase 3: Save session for potential recovery (Issue #23)
+        if self.enable_persistence and self.voice_session_id:
+            self.previous_session_uuid = self.voice_session_id
+            self.should_restore_session = True
+            logger.debug(
+                "Session marked for potential recovery",
+                voice_session_id=self.previous_session_uuid,
+            )
         
         # Sprint 3 Phase 1: Close bridge session on disconnect (Issue #20)
         if self.enable_persistence and self.voice_session_id:
@@ -713,11 +761,53 @@ class OpenClawWebSocketClient:
         except Exception as e:
             logger.error("Failed to persist message", error=str(e), exc_info=True)
     
+    def get_recovery_status(self) -> Optional[dict]:
+        """Get session recovery status if restoration was attempted.
+        
+        Sprint 3 Phase 3: Recovery validation (Issue #23)
+        
+        Returns:
+            Dict with recovery status or None if no recovery attempted
+        """
+        if self._recovery_result is None:
+            return None
+        
+        result = self._recovery_result
+        return {
+            "status": result.status.value,
+            "session_uuid": result.session_uuid,
+            "recovered_turns": result.recovered_turns,
+            "lost_turns": result.lost_turns,
+            "recovered_tools": result.recovered_tools,
+            "message": result.message,
+            "warnings": result.warnings,
+            "is_successful": result.is_successful(),
+        }
+    
+    def is_session_restored(self) -> bool:
+        """Check if session was successfully restored from disconnect.
+        
+        Sprint 3 Phase 3: Recovery validation (Issue #23)
+        
+        Returns:
+            True if session was restored, False otherwise
+        """
+        if self._recovery_result is None:
+            return False
+        return self._recovery_result.is_successful()
+    
+    def clear_recovery_state(self) -> None:
+        """Clear recovery result to free memory."""
+        self._recovery_result = None
+    
     def get_stats(self) -> dict[str, Any]:
         """Get connection statistics as dictionary."""
         return {
             "state": self._state.value,
             "session_id": self.session_id,
+            "voice_session_id": self.voice_session_id,
+            "previous_session_uuid": self.previous_session_uuid,
+            "should_restore_session": self.should_restore_session,
             "connect_attempts": self.stats.connect_attempts,
             "successful_connections": self.stats.successful_connections,
             "messages_sent": self.stats.messages_sent,
