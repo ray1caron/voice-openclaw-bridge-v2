@@ -204,7 +204,7 @@ class TestAudioBuffer:
         buffer.write(frame)
         buffer.write(frame)
         
-        # Overflow
+        # Overflow (non-blocking write when full returns False, not counted)
         buffer.write(frame, block=False)
         
         # Read
@@ -217,5 +217,5 @@ class TestAudioBuffer:
         stats = buffer.stats
         assert stats['overflow_count'] == 1
         assert stats['underflow_count'] == 1
-        assert stats['total_written'] == 3
+        assert stats['total_written'] == 2  # Only 2 successful writes
         assert stats['total_read'] == 2

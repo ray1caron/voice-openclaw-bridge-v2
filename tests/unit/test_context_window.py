@@ -259,11 +259,11 @@ class TestContextWindow:
         window = ContextWindow(session_uuid="test", session_id=1)
         
         # Add ~40 char message (should be ~10 tokens)
-        window.add_user_message("This is a test message with approximately 40 characters", persist=False)
+        window.add_user_message("This is a test message with 40 chars", persist=False)
         
         tokens = window.estimate_tokens()
-        assert tokens >= 9
-        assert tokens <= 11
+        # 40 chars // 4 = 10 tokens
+        assert tokens == 10
         
     def test_is_full_by_turns(self, mock_history):
         """Test is_full check by turn count."""
