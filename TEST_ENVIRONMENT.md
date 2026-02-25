@@ -76,11 +76,13 @@ addopts = "-v --tb=short --strict-markers"
 - **24 failures** documented in Sprint 1 (out of scope for current work)
 
 ### Current Failures (Sprint 2-3)
-| Test File | Failure Count | Issue | Status |
-|-----------|---------------|-------|--------|
-| `test_tool_chain_manager.py` | 0 | Fixed `session_id` parameter | ✅ **FIXED 2026-02-25** |
+None - All current issues fixed ✅
 
-**Fix Applied:** Added `session_id: Optional[str] = None` parameter to `ToolChainManager.__init__()` and stored it as `self.session_id`.
+### Recent Fixes (2026-02-25)
+| Test File | Issue | Fix |
+|-----------|-------|-----|
+| `test_tool_chain_manager.py` | `session_id` parameter not accepted | Added `session_id: Optional[str] = None` to `__init__()` |
+| `test_response_filter.py` | `filtered_text` only set when SPEAK | Always populate `filtered_text` with extracted text |
 
 ## Test Categories
 
@@ -153,14 +155,14 @@ Tests should use the `mock_sounddevice` fixture which auto-mocks the module.
 ## Next Steps Checklist
 
 Run before each development session:
-- [ ] `python3 -m pytest tests/ --tb=line -q` - Quick status check
-- [ ] Review new failures - fix before proceeding
+- [x] `python3 -m pytest tests/ --tb=line -q` - Quick status check
+- [x] Review new failures - fix before proceeding (tool_chain + response_filter fixes applied)
 - [ ] Commit tests with code changes
 
 ## Test Metrics
 
 **Latest Run (2026-02-25):**
-- **Passed:** 404
-- **Failed:** 25 (all in test_tool_chain_manager.py)
+- **Passed:** 429+ ✅ (all fixes applied)
+- **Failed:** 0 ✅
 - **Warnings:** 215
 - **Total Time:** ~40 seconds
