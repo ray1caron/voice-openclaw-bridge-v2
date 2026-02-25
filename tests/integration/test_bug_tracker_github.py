@@ -78,14 +78,14 @@ class TestBugTrackerGitHubIntegration:
         assert sample_bug_report.stack_trace in github_data["body"]
     
     @pytest.mark.integration
-    @patch('requests.post')
+    @patch('bridge.bug_tracker.requests.post')
     def test_create_github_issue_success(self, mock_post, sample_bug_report, mock_github_response):
         """Test successful GitHub issue creation."""
         mock_post.return_value = mock_github_response
         
         tracker = BugTracker.get_instance()
-        tracker._github_token = "test_token_123"
-        tracker._github_repo = "ray1caron/voice-openclaw-bridge-v2"
+        tracker.github_token = "test_token_123"
+        tracker.github_repo = "ray1caron/voice-openclaw-bridge-v2"
         
         with patch.object(tracker, 'update_bug_github_issue') as mock_update:
             issue_number = tracker.create_github_issue(sample_bug_report)
@@ -100,24 +100,24 @@ class TestBugTrackerGitHubIntegration:
             assert "token test_token_123" in call_args[1]["headers"]["Authorization"]
     
     @pytest.mark.integration
-    @patch('requests.post')
+    @patch('bridge.bug_tracker.requests.post')
     def test_create_github_issue_failure(self, mock_post, sample_bug_report, mock_github_failure):
         """Test GitHub issue creation failure handling."""
         mock_post.return_value = mock_github_failure
         
         tracker = BugTracker.get_instance()
-        tracker._github_token = "invalid_token"
+        tracker.github_token = "invalid_token"
         
         issue_number = tracker.create_github_issue(sample_bug_report)
         
         assert issue_number is None
     
     @pytest.mark.integration
-    @patch('requests.post')
+    @patch('bridge.bug_tracker.requests.post')
     def test_create_github_issue_no_token(self, mock_post, sample_bug_report):
         """Test that issues aren't created without token."""
         tracker = BugTracker.get_instance()
-        tracker._github_token = None
+        tracker.github_token = None
         
         issue_number = tracker.create_github_issue(sample_bug_report)
         
@@ -125,16 +125,16 @@ class TestBugTrackerGitHubIntegration:
         mock_post.assert_not_called()
     
     @pytest.mark.integration
-    @patch('requests.post')
+    @patch('bridge.bug_tracker.requests.post')
     def test_auto_create_on_critical_bug(self, mock_post, mock_github_response):
         """Test automatic GitHub issue creation for critical bugs."""
         mock_post.return_value = mock_github_response
         
         with patch.dict(os.environ, {"GITHUB_TOKEN": "test_token"}):
             tracker = BugTracker.get_instance()
-            tracker._github_token = "test_token"
-            tracker._auto_github_create = True
-            tracker._github_repo = "ray1caron/voice-openclaw-bridge-v2"
+            tracker.github_token = "test_token"
+            tracker.auto_upload_enabled = True
+            tracker.github_repo = "ray1caron/voice-openclaw-bridge-v2"
             
             with patch.object(tracker, 'create_github_issue') as mock_create:
                 mock_create.return_value = 42
@@ -158,18 +158,29 @@ class TestBugTrackerGitHubIntegration:
         assert all(label in github_data["labels"] for label in expected_labels)
     
     @pytest.mark.integration
-    @patch('requests.patch')
-    def test_update_github_issue_link(self, mock_patch):
+    def test_update_github_issue_link(self):
         """Test updating bug record with GitHub issue number."""
-        mock_patch.return_value.status_code = 200
-        
         tracker = BugTracker.get_instance()
         
-        with patch.object(tracker, '_db') as mock_db:
-            tracker.update_bug_github_issue(1, 42)
-            
-            mock_db.execute.assert_called_once()
-            mock_db.commit.assert_called_once()
+        # Create a test bug first
+        try:
+            raise ValueError("Test error")
+        except Exception as e:
+            bug_id = tracker.capture_error(
+                error=e,
+                component="test",
+                severity=BugSeverity.LOW,
+                title="Test bug"
+            )
+        
+        # Update with GitHub issue number
+        result = tracker.update_bug_github_issue(bug_id, 42)
+        assert result is True
+        
+        # Verify the bug was updated
+        bug = tracker.get_bug(bug_id)
+        assert bug is not None
+        assert bug.github_issue == 42
 
 
 class TestBugTrackerE2EScenarios:
@@ -187,15 +198,15 @@ class TestBugTrackerE2EScenarios:
         3. GitHub issue is automatically created
         4. Issue number is linked to local bug record
         """
-        with patch('requests.post') as mock_post:
+        with patch('bridge.bug_tracker.requests.post') as mock_post:
             mock_response = Mock()
             mock_response.status_code = 201
             mock_response.json.return_value = {"number": 99}
             mock_post.return_value = mock_response
             
             tracker = BugTracker.get_instance()
-            tracker._github_token = "ghp_test_token"
-            tracker._github_repo = "ray1caron/voice-openclaw-bridge-v2"
+            tracker.github_token = "ghp_test_token"
+            tracker.github_repo = "ray1caron/voice-openclaw-bridge-v2"
             
             try:
                 raise ValueError("Simulated voice processing error")
@@ -224,11 +235,11 @@ class TestBugTrackerE2EScenarios:
     @pytest.mark.integration
     def test_network_failure_recovery(self):
         """Test that bug tracker handles GitHub API failures gracefully."""
-        with patch('requests.post') as mock_post:
+        with patch('bridge.bug_tracker.requests.post') as mock_post:
             mock_post.side_effect = Exception("Network unreachable")
             
             tracker = BugTracker.get_instance()
-            tracker._github_token = "valid_token"
+            tracker.github_token = "valid_token"
             
             report = BugReport(
                 id=None,
@@ -257,13 +268,13 @@ class TestBugTrackerRateLimiting:
     """Test GitHub API rate limiting and backoff."""
     
     @pytest.mark.integration
-    @patch('requests.post')
+    @patch('bridge.bug_tracker.requests.post')
     @patch('time.sleep')
     def test_rate_limit_backoff(self, mock_sleep, mock_post):
         """Test exponential backoff on rate limiting."""
         rate_limited_response = Mock()
         rate_limited_response.status_code = 429
-        rate_limited_response.headers = {"Retry-After": "60"}
+        rate_limited_response.headers = {"Retry-After": "2"}
         
         success_response = Mock()
         success_response.status_code = 201
@@ -272,6 +283,7 @@ class TestBugTrackerRateLimiting:
         mock_post.side_effect = [rate_limited_response, success_response]
         
         tracker = BugTracker.get_instance()
+        tracker.github_token = "test_token"
         report = BugReport(
             id=None, timestamp=datetime.now().isoformat(),
             severity=BugSeverity.LOW.value, component="test",
