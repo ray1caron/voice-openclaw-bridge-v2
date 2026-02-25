@@ -77,7 +77,7 @@ class ResponseFilter:
         r"(?i)^(hmm|uhh?|well|actually|wait|hold on)[\.,\s]",
         
         # Tool call markers
-        r"\[\s*(?:Tool Call|tool|function call|calling)\s*\]",
+        r"\[\s*(?:Tool Call|tool|function call|calling)[^\]]*\]",
         r'\{\s*"(?:tool|function)":\s*',
         
         # Progress indicators
@@ -159,7 +159,7 @@ class ResponseFilter:
             response_type=response_type,
             decision=decision,
             confidence=confidence,
-            filtered_text=text,
+            filtered_text=text if decision == FilterDecision.SPEAK else None,
             speak_score=self._calculate_speak_score(message, text, response_type, confidence),
         )
         

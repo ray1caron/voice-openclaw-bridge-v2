@@ -208,7 +208,7 @@ class TestMessageExtraction:
         """Direct text field should be extracted."""
         filter = ResponseFilter()
         
-        msg = {"text": "Hello world"}
+        msg = {"type": "final", "text": "Hello world"}  # Use "final" type to get SPEAK decision
         result = filter.filter_message(msg)
         
         assert result.filtered_text == "Hello world"
@@ -217,7 +217,7 @@ class TestMessageExtraction:
         """Content string should be extracted."""
         filter = ResponseFilter()
         
-        msg = {"content": "Hello from content"}
+        msg = {"type": "final", "content": "Hello from content"}
         result = filter.filter_message(msg)
         
         assert result.filtered_text == "Hello from content"
@@ -226,7 +226,7 @@ class TestMessageExtraction:
         """Content dict with text field should be extracted."""
         filter = ResponseFilter()
         
-        msg = {"content": {"text": "Nested text"}}
+        msg = {"type": "final", "content": {"text": "Nested text"}}
         result = filter.filter_message(msg)
         
         assert result.filtered_text == "Nested text"
@@ -235,7 +235,7 @@ class TestMessageExtraction:
         """Response field should be extracted."""
         filter = ResponseFilter()
         
-        msg = {"response": "This is the response"}
+        msg = {"type": "final", "response": "This is the response"}
         result = filter.filter_message(msg)
         
         assert result.filtered_text == "This is the response"
@@ -390,10 +390,10 @@ class TestResponseFilterManager:
         assert should_interrupt is True
     
     def test_manager_no_interrupt_on_normal(self):
-        """Manager should not interrupt on normal messages."""
+        """Manager should not interrupt on progress/planning messages."""
         manager = ResponseFilterManager()
         
-        normal_msg = {"type": "final", "text": "Regular response"}
+        normal_msg = {"type": "progress", "text": "Regular response"}
         should_interrupt = manager.should_interrupt(normal_msg)
         
         assert should_interrupt is False

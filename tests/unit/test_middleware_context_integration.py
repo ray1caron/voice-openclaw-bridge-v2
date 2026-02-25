@@ -105,7 +105,7 @@ class TestMiddlewareContextIntegration:
         # Should add to context with metadata
         mock_window.add_user_message.assert_called_once()
         call_args = mock_window.add_user_message.call_args
-        assert call_args[1]['content'] == "Hello"
+        assert call_args[0][0] == "Hello"  # First positional arg is content
         metadata = call_args[1]['metadata']
         assert metadata['message_type'] == 'final'
         assert metadata['speakability'] == 'speak'
@@ -148,7 +148,7 @@ class TestMiddlewareContextIntegration:
         # Should add tool call to context
         mock_window.add_assistant_message.assert_called_once()
         call_args = mock_window.add_assistant_message.call_args
-        assert '[Tool: search]' in call_args[1]['content']
+        assert '[Tool: search]' in call_args[0][0]  # First positional arg is content
         metadata = call_args[1]['metadata']
         assert metadata['tool_name'] == 'search'
         assert metadata['tool_params'] == {'query': 'test'}
