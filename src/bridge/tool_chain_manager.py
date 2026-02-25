@@ -133,6 +133,7 @@ class ToolChainManager:
         default_timeout: float = 30.0,
         on_step_complete: Optional[Callable[[ToolStep], None]] = None,
         on_chain_complete: Optional[Callable[[ToolChainResult], None]] = None,
+        session_id: Optional[str] = None,
     ):
         """
         Initialize the tool chain manager.
@@ -145,6 +146,7 @@ class ToolChainManager:
         self.default_timeout = default_timeout
         self.on_step_complete = on_step_complete
         self.on_chain_complete = on_chain_complete
+        self.session_id = session_id
         
         self._state = ToolChainState.IDLE
         self._current_chain: Optional[List[ToolStep]] = None
@@ -155,6 +157,7 @@ class ToolChainManager:
             "tool_chain_manager.initialized",
             max_chain_length=max_chain_length,
             default_timeout=default_timeout,
+            session_id=session_id,
         )
     
     @property
