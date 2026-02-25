@@ -3,6 +3,7 @@ WebSocket Client for OpenClaw Integration
 
 Handles bidirectional communication with OpenClaw gateway.
 Manages connection lifecycle, reconnection, and message protocol validation.
+Integrates with session persistence (Issue #20).
 """
 import asyncio
 import enum
@@ -18,6 +19,24 @@ from websockets.exceptions import ConnectionClosed, InvalidStatusCode
 from bridge.config import get_config, OpenClawConfig
 
 logger = structlog.get_logger()
+
+# Import session/history managers (lazy to avoid circular imports)
+_session_manager = None
+_history_manager = None
+
+def _get_session_manager():
+    global _session_manager
+    if _session_manager is None:
+        from bridge.session_manager import get_session_manager
+        _session_manager = get_session_manager()
+    return _session_manager
+
+def _get_history_manager():
+    global _history_manager
+    if _history_manager is None:
+        from bridge.history_manager import get_history_manager
+        _history_manager = get_history_manager()
+    return _history_manager
 
 
 class ConnectionState(enum.Enum):
@@ -174,9 +193,15 @@ class OpenClawWebSocketClient:
         # Connection state
         self._state = ConnectionState.DISCONNECTED
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
-        self.session_id: Optional[str] = None
+        self.session_id: Optional[str] = None  # OpenClaw session ID
+        self.voice_session_id: Optional[str] = None  # Bridge session ID (Issue #20)
         self._connection_attempts = 0
         self.stats = ConnectionStats()
+        
+        # Session persistence (Issue #20)
+        config_obj = get_config()
+        self.enable_persistence = config_obj.persistence.enabled
+        
         
         # Message handlers
         self.on_message = on_message
@@ -290,6 +315,28 @@ class OpenClawWebSocketClient:
                     except Exception as e:
                         logger.error("Connect callback failed", error=str(e))
                 
+                # Sprint 3 Phase 1: Create bridge session on connect (Issue #20)
+                if self.enable_persistence:
+                    try:
+                        session_mgr = _get_session_manager()
+                        metadata = {
+                            "websocket": True,
+                            "host": self.config.host,
+                            "port": self.config.port,
+                            "secure": self.config.secure,
+                            "openclaw_session_id": self.session_id,
+                        }
+                        session = session_mgr.create_session(metadata)
+                        self.voice_session_id = session.session_uuid
+                        self._turn_index = 0  # Initialize turn counter
+                        logger.info(
+                            "Bridge session created",
+                            voice_session_id=self.voice_session_id,
+                            openclaw_session_id=self.session_id,
+                        )
+                    except Exception as e:
+                        logger.error("Failed to create bridge session", error=str(e))
+                
                 return True
                 
             except asyncio.TimeoutError:
@@ -376,6 +423,23 @@ class OpenClawWebSocketClient:
         
         self._set_state(ConnectionState.DISCONNECTED)
         
+        # Sprint 3 Phase 1: Close bridge session on disconnect (Issue #20)
+        if self.enable_persistence and self.voice_session_id:
+            try:
+                session_mgr = _get_session_manager()
+                session_mgr.close_session(
+                    self.voice_session_id, 
+                    reason="websocket_disconnected"
+                )
+                logger.info(
+                    "Bridge session closed",
+                    voice_session_id=self.voice_session_id,
+                    reason="websocket_disconnected",
+                )
+                self.voice_session_id = None
+            except Exception as e:
+                logger.error("Failed to close bridge session", error=str(e))
+        
         if self.on_disconnect:
             try:
                 self.on_disconnect()
@@ -424,6 +488,7 @@ class OpenClawWebSocketClient:
     async def send_voice_input(self, text: str, confidence: Optional[float] = None) -> bool:
         """
         Send transcribed voice input to OpenClaw.
+        Also persists to conversation history if enabled (Issue #20).
         """
         message = {
             "type": MessageType.VOICE_INPUT.value,
@@ -434,7 +499,29 @@ class OpenClawWebSocketClient:
         if confidence is not None:
             message["metadata"] = {"confidence": confidence}
         
-        return await self.send(message)
+        result = await self.send(message)
+        
+        # Sprint 3 Phase 1: Persist user message (Issue #20)
+        if result and self.enable_persistence and self.voice_session_id:
+            try:
+                hist_mgr = _get_history_manager()
+                session_mgr = _get_session_manager()
+                
+                session = session_mgr.get_session(self.voice_session_id)
+                if session and session.id:
+                    hist_mgr.add_turn(
+                        session_id=session.id,
+                        role="user",
+                        content=text,
+                        turn_index=self._turn_index,
+                        message_type="voice_input",
+                        speakability="speakable",
+                    )
+                    self._turn_index += 1
+            except Exception as e:
+                logger.error("Failed to persist voice input", error=str(e))
+        
+        return result
     
     async def send_interrupt(self) -> bool:
         """
@@ -475,6 +562,13 @@ class OpenClawWebSocketClient:
                     message = json.loads(message_raw)
                     self.stats.messages_received += 1
                     logger.debug("Message received", type=message.get("type"))
+                    
+                    # Sprint 3 Phase 1: Persist message to history (Issue #20)
+                    if self.enable_persistence and self.voice_session_id:
+                        try:
+                            self._persist_message(message)
+                        except Exception as e:
+                            logger.error("Failed to persist message", error=str(e))
                     
                     if self.on_message:
                         try:
@@ -540,6 +634,75 @@ class OpenClawWebSocketClient:
             self.session_id = sid
             logger.info("Requested session restoration", session_id=sid)
         return success
+    
+    def _persist_message(self, message: dict) -> None:
+        """
+        Persist received message to conversation history.
+        Sprint 3 Phase 1: Message persistence integration (Issue #20).
+        
+        Args:
+            message: Message dict from OpenClaw
+        """
+        if not self.voice_session_id:
+            return
+        
+        try:
+            hist_mgr = _get_history_manager()
+            session_mgr = _get_session_manager()
+            
+            # Get session DB ID
+            session = session_mgr.get_session(self.voice_session_id)
+            if not session or not session.id:
+                return
+            
+            # Determine role based on message type
+            msg_type = message.get("type", "")
+            role = "assistant"  # Default
+            
+            if msg_type == "voice_input":
+                role = "user"
+            elif msg_type in ("ping", "pong", "control"):
+                # Skip internal messages
+                return
+            
+            # Get content (handle various message structures)
+            content = message.get("text", "")
+            if not content and "content" in message:
+                content = message["content"]
+            if not content:
+                content = json.dumps(message)  # Fallback to JSON
+            
+            # Extract metadata for persistence
+            metadata = {}
+            if "metadata" in message:
+                metadata = message["metadata"]
+            
+            # Determine message type from middleware if available
+            message_type = msg_type
+            speakability = None
+            
+            if "_type" in message:
+                message_type = message["_type"]
+            if "_speakability" in message:
+                speakability = message["_speakability"]
+            elif "speakable" in metadata:
+                speakability = "speakable" if metadata["speakable"] else "silent"
+            
+            # Add turn to history
+            hist_mgr.add_turn(
+                session_id=session.id,
+                role=role,
+                content=content,
+                turn_index=self._turn_index,
+                message_type=message_type,
+                speakability=speakability,
+            )
+            
+            # Increment turn counter
+            self._turn_index += 1
+            
+        except Exception as e:
+            logger.error("Failed to persist message", error=str(e), exc_info=True)
     
     def get_stats(self) -> dict[str, Any]:
         """Get connection statistics as dictionary."""

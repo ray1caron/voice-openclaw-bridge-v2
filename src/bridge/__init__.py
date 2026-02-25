@@ -53,6 +53,24 @@ from bridge.tool_chain_manager import (
     ToolResultStatus,
     execute_tool_chain,
 )
+from bridge.conversation_store import (
+    ConversationStore,
+    get_conversation_store,
+    get_session_db_path,
+)
+from bridge.session_manager import (
+    SessionManager,
+    Session,
+    SessionState,
+    SessionError,
+    get_session_manager,
+)
+from bridge.history_manager import (
+    HistoryManager,
+    ConversationTurn,
+    ConversationSession,
+    get_history_manager,
+)
 
 __all__ = [
     "AppConfig",
@@ -98,4 +116,19 @@ __all__ = [
     "ToolChainState",
     "ToolResultStatus",
     "execute_tool_chain",
+    # Sprint 3 - Session Persistence
+    "ConversationStore",
+    "get_conversation_store",
+    "get_session_db_path",
+    # Sprint 3 - Session Manager
+    "SessionManager",
+    "Session",
+    "SessionState",
+    "SessionError",
+    "get_session_manager",
+    # Sprint 3 - History Manager
+    "HistoryManager",
+    "ConversationTurn",
+    "ConversationSession",
+    "get_history_manager",
 ]

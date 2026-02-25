@@ -92,6 +92,16 @@ class OpenClawConfig(BaseModel):
         return v.strip()
 
 
+class PersistenceConfig(BaseModel):
+    """Session persistence configuration."""
+    
+    enabled: bool = Field(default=True, description="Enable session persistence")
+    db_path: str | None = Field(default=None, description="Custom database path (None for default)")
+    ttl_minutes: int = Field(default=30, ge=1, le=1440, description="Session timeout in minutes")
+    max_history: int = Field(default=10, ge=1, le=100, description="Max conversation turns to persist")
+    cleanup_interval: int = Field(default=60, ge=10, le=3600, description="Seconds between cleanup runs")
+
+
 class BridgeConfig(BaseModel):
     """Bridge behavior configuration."""
     
@@ -126,6 +136,7 @@ class AppConfig(BaseSettings):
     tts: TTSConfig = Field(default_factory=TTSConfig)
     openclaw: OpenClawConfig = Field(default_factory=OpenClawConfig)
     bridge: BridgeConfig = Field(default_factory=BridgeConfig)
+    persistence: PersistenceConfig = Field(default_factory=PersistenceConfig)
     
     # Internal
     _config_file: Path | None = None
