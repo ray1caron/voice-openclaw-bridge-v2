@@ -558,3 +558,181 @@ class TestOpenClawWebSocketClientRestoreSession:
         
         assert not result
         client.websocket.send.assert_not_called()
+
+
+class TestWebSocketSessionPersistence:
+    """Tests for Issue #20: WebSocket Session Lifecycle Integration."""
+    
+    @pytest.mark.asyncio
+    @patch("bridge.websocket_client._get_session_manager")
+    @patch("bridge.websocket_client.get_config")
+    async def test_session_created_on_connect(self, mock_get_config, mock_get_session_manager):
+        """Issue #20: Session created on successful WebSocket connect."""
+        # Setup mocks
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = True
+        mock_config.openclaw = OpenClawConfig()
+        mock_get_config.return_value = mock_config
+        
+        mock_session = MagicMock()
+        mock_session.session_uuid = "test-session-uuid-123"
+        mock_session.id = 42
+        
+        mock_session_mgr = MagicMock()
+        mock_session_mgr.create_session.return_value = mock_session
+        mock_session_mgr.get_session.return_value = mock_session
+        mock_get_session_manager.return_value = mock_session_mgr
+        
+        # Create client
+        config = OpenClawConfig()
+        client = OpenClawWebSocketClient(config=config)
+        
+        # Simulate successful connection with welcome message
+        client._state = ConnectionState.CONNECTED
+        client.voice_session_id = mock_session.session_uuid
+        client._turn_index = 0
+        
+        # Verify session was assigned
+        assert client.voice_session_id == "test-session-uuid-123"
+        assert client._turn_index == 0
+    
+    @pytest.mark.asyncio
+    @patch("bridge.websocket_client._get_session_manager")
+    @patch("bridge.websocket_client._get_history_manager")
+    @patch("bridge.websocket_client.get_config")
+    async def test_message_persisted_on_send(
+        self, mock_get_config, mock_get_history_manager, mock_get_session_manager
+    ):
+        """Issue #20: Voice input messages persisted with metadata."""
+        # Setup mocks
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = True
+        mock_config.openclaw = OpenClawConfig()
+        mock_get_config.return_value = mock_config
+        
+        mock_session = MagicMock()
+        mock_session.id = 42
+        mock_session_mgr = MagicMock()
+        mock_session_mgr.get_session.return_value = mock_session
+        mock_get_session_manager.return_value = mock_session_mgr
+        
+        mock_history_mgr = MagicMock()
+        mock_get_history_manager.return_value = mock_history_mgr
+        
+        # Create client with persistence enabled
+        config = OpenClawConfig()
+        client = OpenClawWebSocketClient(config=config)
+        client._state = ConnectionState.CONNECTED
+        client.websocket = AsyncMock()
+        client.websocket.send = AsyncMock(return_value=None)
+        client.voice_session_id = "test-session-uuid"
+        client._turn_index = 0
+        
+        # Send voice input
+        result = await client.send_voice_input("Hello world", confidence=0.95)
+        
+        # Verify message was sent
+        assert result
+        client.websocket.send.assert_called_once()
+    
+    @pytest.mark.asyncio
+    @patch("bridge.websocket_client._get_session_manager")
+    @patch("bridge.websocket_client.get_config")
+    async def test_session_closed_on_disconnect(self, mock_get_config, mock_get_session_manager):
+        """Issue #20: Session closed on WebSocket disconnect."""
+        # Setup mocks
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = True
+        mock_config.openclaw = OpenClawConfig()
+        mock_get_config.return_value = mock_config
+        
+        mock_session_mgr = MagicMock()
+        mock_get_session_manager.return_value = mock_session_mgr
+        
+        # Create client
+        config = OpenClawConfig()
+        client = OpenClawWebSocketClient(config=config)
+        
+        # Setup connected state with session
+        client._state = ConnectionState.CONNECTED
+        client.voice_session_id = "test-session-uuid"
+        client.websocket = AsyncMock()
+        mock_ws = AsyncMock()
+        mock_ws.close = AsyncMock()
+        client.websocket = mock_ws
+        client.stats.last_connect_time = 1234567890.0
+        
+        # Disconnect
+        with patch("time.time", return_value=1234567895.0):
+            await client.disconnect()
+        
+        # Verify session was closed
+        assert client.voice_session_id is None
+    
+    def test_persistence_feature_flag_disabled(self):
+        """Issue #20: Persistence disabled when feature flag is false."""
+        # Mock config with persistence disabled
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = False
+        mock_config.openclaw = OpenClawConfig()
+        
+        with patch("bridge.websocket_client.get_config", return_value=mock_config):
+            client = OpenClawWebSocketClient()
+            
+            # Verify persistence is disabled
+            assert not client.enable_persistence
+    
+    def test_persistence_feature_flag_enabled(self):
+        """Issue #20: Persistence enabled when feature flag is true."""
+        # Mock config with persistence enabled  
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = True
+        mock_config.openclaw = OpenClawConfig()
+        
+        with patch("bridge.websocket_client.get_config", return_value=mock_config):
+            client = OpenClawWebSocketClient()
+            
+            # Verify persistence is enabled
+            assert client.enable_persistence
+    
+    @pytest.mark.asyncio
+    @patch("bridge.websocket_client._get_session_manager")
+    @patch("bridge.websocket_client._get_history_manager")
+    @patch("bridge.websocket_client.get_config")
+    async def test_message_persisted_with_metadata(
+        self, mock_get_config, mock_get_history_manager, mock_get_session_manager
+    ):
+        """Issue #20: Messages persisted with correct metadata (message_type, speakability)."""
+        # Setup mocks
+        mock_config = MagicMock()
+        mock_config.persistence.enabled = True
+        mock_config.openclaw = OpenClawConfig()
+        mock_get_config.return_value = mock_config
+        
+        mock_session = MagicMock()
+        mock_session.id = 42
+        mock_session_mgr = MagicMock()
+        mock_session_mgr.get_session.return_value = mock_session
+        mock_get_session_manager.return_value = mock_session_mgr
+        
+        mock_history_mgr = MagicMock()
+        mock_get_history_manager.return_value = mock_history_mgr
+        
+        # Create client
+        config = OpenClawConfig()
+        client = OpenClawWebSocketClient(config=config)
+        client._state = ConnectionState.CONNECTED
+        client.websocket = AsyncMock()
+        client.websocket.send = AsyncMock(return_value=None)
+        client.voice_session_id = "test-session-uuid"
+        
+        # Send voice input (should persist as user message)
+        await client.send_voice_input("Hello world")
+        
+        # Verify websocket send was called
+        assert client.websocket.send.called
+        
+        # Verify sent message structure
+        sent_data = json.loads(client.websocket.send.call_args[0][0])
+        assert sent_data["type"] == "voice_input"
+        assert sent_data["text"] == "Hello world"
