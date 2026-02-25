@@ -412,7 +412,7 @@ class HistoryManager:
             for session in sessions:
                 turns = self.get_session_turns(session.session_uuid)
                 convo = ConversationSession(
-                    session_uuid=session_uuid,
+                    session_uuid=session.session_uuid,
                     created_at=session.created_at,
                     state=session.state,
                     turns=turns,

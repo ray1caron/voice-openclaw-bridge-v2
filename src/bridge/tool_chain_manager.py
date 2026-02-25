@@ -180,14 +180,37 @@ class ToolChainManager:
         if len(steps) > self.max_chain_length:
             return False, f"Chain too long ({len(steps)} > {self.max_chain_length})"
         
-        # Check for circular dependencies
+        # Build dependency graph and check for circular dependencies
+        n = len(steps)
+        adj = [[] for _ in range(n)]  # adjacency list
+        
         for i, step in enumerate(steps):
             if step.depends_on:
                 for dep_idx in step.depends_on:
+                    if dep_idx < 0 or dep_idx >= n:
+                        return False, f"Step {i} has invalid dependency {dep_idx}"
                     if dep_idx >= i:
                         return False, f"Step {i} depends on future step {dep_idx}"
-                    if dep_idx < 0 or dep_idx >= len(steps):
-                        return False, f"Step {i} has invalid dependency {dep_idx}"
+                    adj[dep_idx].append(i)  # dep_idx must complete before i
+        
+        # Detect cycles using DFS
+        WHITE, GRAY, BLACK = 0, 1, 2
+        color = [WHITE] * n
+        
+        def dfs(node: int) -> bool:
+            color[node] = GRAY
+            for neighbor in adj[node]:
+                if color[neighbor] == GRAY:
+                    return True  # Back edge found = cycle
+                if color[neighbor] == WHITE and dfs(neighbor):
+                    return True
+            color[node] = BLACK
+            return False
+        
+        for i in range(n):
+            if color[i] == WHITE:
+                if dfs(i):
+                    return False, "Circular dependency detected in chain"
         
         return True, None
     
@@ -460,3 +483,19 @@ async def execute_tool_chain(
         on_step_complete=on_step_complete,
     )
     return await manager.execute_chain(steps, tool_registry)
+
+
+# Global manager instance
+_tool_chain_manager: Optional[ToolChainManager] = None
+
+
+def get_tool_chain_manager() -> ToolChainManager:
+    """Get or create global tool chain manager.
+    
+    Returns:
+        ToolChainManager instance
+    """
+    global _tool_chain_manager
+    if _tool_chain_manager is None:
+        _tool_chain_manager = ToolChainManager()
+    return _tool_chain_manager

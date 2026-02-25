@@ -306,19 +306,31 @@ class TestAudioDeviceManager:
     
     def test_list_devices_mock(self, monkeypatch):
         """Test listing devices with mock data."""
-        # Mock sounddevice
+        # Mock sounddevice BEFORE importing AudioDeviceManager
         mock_devices = [
             {'name': 'Input Device', 'max_input_channels': 2, 'max_output_channels': 0, 'default_samplerate': 16000},
             {'name': 'Output Device', 'max_input_channels': 0, 'max_output_channels': 2, 'default_samplerate': 48000},
         ]
         
+        def mock_query_devices(kind=None):
+            if kind == 'input':
+                return mock_devices[0]
+            elif kind == 'output':
+                return mock_devices[1]
+            return mock_devices
+        
+        # Mock at module level before any imports
         import sounddevice as sd
-        monkeypatch.setattr(sd, 'query_devices', lambda: mock_devices)
-        monkeypatch.setattr(sd, 'query_devices', lambda kind: mock_devices[0] if kind == 'input' else mock_devices[1])
+        monkeypatch.setattr(sd, 'query_devices', mock_query_devices)
+        
+        # Reload the audio_pipeline module to pick up mocked sounddevice
+        import sys
+        import importlib
+        from bridge import audio_pipeline
+        importlib.reload(audio_pipeline)
         
         # Re-initialize with mocked sounddevice
-        from bridge.audio_pipeline import AudioDeviceManager
-        manager = AudioDeviceManager()
+        manager = audio_pipeline.AudioDeviceManager()
         
         # Should find devices
         assert len(manager._devices) > 0
