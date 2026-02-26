@@ -580,15 +580,36 @@ class OpenClawWebSocketClient:
         
         return result
     
-    async def send_interrupt(self) -> bool:
+    async def send_interrupt(self, event: Optional['InterruptionEvent'] = None) -> bool:
         """
         Send interruption signal (user barge-in).
+        
+        Issue #8: Enhances interruption with event data for latency tracking.
+        
+        Args:
+            event: Optional interruption event with timing/energy data
         """
         message = {
             "type": MessageType.CONTROL.value,
             "action": ControlAction.INTERRUPT.value,
             "timestamp": time.time(),
+            "voice_bridge": True,
         }
+        
+        # Issue #8: Include interruption event data if provided
+        if event:
+            message["interruption"] = {
+                "latency_ms": event.latency_ms,
+                "vad_energy": event.vad_energy,
+                "confidence": event.confidence,
+                "timestamp": event.timestamp.isoformat() if hasattr(event, 'timestamp') else time.time(),
+            }
+            logger.info(
+                "Sending interruption signal to OpenClaw",
+                latency_ms=event.latency_ms,
+                confidence=event.confidence
+            )
+        
         return await self.send(message)
     
     async def send_control(self, action: ControlAction, data: Optional[dict] = None) -> bool:
