@@ -185,7 +185,7 @@ class TestBargeInEdgeCases:
         await handler._trigger_interruption(0.8, 100)
         
         # Second interrupt after clearing
-        barge_in.state = BargeInState.SPEAKING
+        await handler.start_speaking()
         handler.speech_start = datetime.now() - timedelta(milliseconds=100)
         await handler._trigger_interruption(0.8, 100)
         
