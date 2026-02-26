@@ -70,13 +70,13 @@ class InterruptAwareFilter:
             self._response_buffer = ""
             return None
         
-        # Only process final messages
-        if tagged_msg.speakability != Speakability.SPEAK:
+        # Only process final messages (check metadata.speakable)
+        if tagged_msg.metadata.speakable != Speakability.SPEAK:
             return tagged_msg
         
         # Accumulate response
-        self._current_response = tagged_msg.message
-        self._response_buffer += tagged_msg.message
+        self._current_response = tagged_msg.content
+        self._response_buffer += tagged_msg.content
         
         return tagged_msg
     
