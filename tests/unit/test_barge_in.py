@@ -4,19 +4,19 @@ import pytest
 import asyncio
 from datetime import datetime, timedelta
 
-from src.audio.barge_in import (
+from audio.barge_in import (
     BargeInState,
     BargeInConfig,
     BargeInSensitivity,
     BargeInHandler,
     InterruptionEvent,
 )
-from src.audio.interrupt_filter import (
+from audio.interrupt_filter import (
     InterruptAwareFilter,
     InterruptMessage,
     InterruptAdapter,
 )
-from src.bridge.middleware import (
+from bridge.openclaw_middleware import (
     TaggedMessage,
     MessageType,
     Speakability,

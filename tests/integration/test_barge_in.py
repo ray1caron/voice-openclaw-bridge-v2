@@ -4,17 +4,17 @@ import pytest
 import asyncio
 from datetime import datetime, timedelta
 
-from src.audio.barge_in import (
+from audio.barge_in import (
     BargeInConfig,
     BargeInSensitivity,
     BargeInHandler,
     BargeInState,
 )
-from src.audio.interrupt_filter import (
+from audio.interrupt_filter import (
     InterruptAwareFilter,
     InterruptAdapter,
 )
-from src.audio.audio_pipeline import AudioPipeline
+from audio.audio_pipeline import AudioPipeline
 
 
 class TestBargeInWithAudioPipeline:
