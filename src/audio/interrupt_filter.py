@@ -6,7 +6,7 @@ Integrates barge-in detection with the response filtering system.
 import logging
 from typing import Optional, Callable
 
-from bridge.middleware import (
+from bridge.openclaw_middleware import (
     MessageType, Speakability, TaggedMessage, OpenClawMiddleware
 )
 from .barge_in import BargeInHandler, BargeInState, InterruptionEvent
