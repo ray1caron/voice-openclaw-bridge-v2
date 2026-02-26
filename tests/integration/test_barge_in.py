@@ -14,7 +14,7 @@ from audio.interrupt_filter import (
     InterruptAwareFilter,
     InterruptAdapter,
 )
-from audio.audio_pipeline import AudioPipeline
+from bridge.audio_pipeline import AudioPipeline
 
 
 class TestBargeInWithAudioPipeline:
