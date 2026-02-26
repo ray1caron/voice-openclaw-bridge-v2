@@ -44,7 +44,7 @@ class InterruptAwareFilter:
         if self.on_interrupt:
             await self._safe_callback(self.on_interrupt, event)
     
-    def on_interrupt: Optional[Callable[[InterruptionEvent], None]] = None
+    on_interrupt: Optional[Callable[[InterruptionEvent], None]] = None
     
     async def _safe_callback(self, callback, *args):
         """Safely execute callback."""

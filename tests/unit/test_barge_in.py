@@ -372,9 +372,9 @@ class TestBargeInIntegration:
         ]
 
 
-@RunIf(has_audio=True)
+@pytest.mark.performance
 class TestBargeInPerformance:
-    """Performance tests for barge-in (requires audio)."""
+    """Performance tests for barge-in."""
     
     @pytest.mark.parametrize("latency_ms", [50, 75, 100])
     @pytest.mark.asyncio
