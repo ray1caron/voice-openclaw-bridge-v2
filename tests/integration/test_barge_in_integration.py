@@ -24,7 +24,7 @@ class TestBargeInAudioPipelineIntegration:
     def audio_pipeline(self):
         """Create audio pipeline instance."""
         # Mock sounddevice to avoid hardware requirements
-        with patch('src.bridge.audio_pipeline.SOUNDDEVICE_AVAILABLE', False):
+        with patch('bridge.audio_pipeline.SOUNDDEVICE_AVAILABLE', False):
             return AudioPipeline()
     
     @pytest.fixture  
