@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch, MagicMock
 
 import numpy as np
 
-from audio.audio_pipeline import AudioPipeline, PipelineState
+from bridge.audio_pipeline import AudioPipeline, PipelineState
 from audio.barge_in import (
     BargeInHandler, BargeInConfig, BargeInState, InterruptionEvent
 )
