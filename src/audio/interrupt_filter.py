@@ -3,6 +3,7 @@
 Integrates barge-in detection with the response filtering system.
 """
 
+import asyncio
 import logging
 from typing import Optional, Callable
 
@@ -50,7 +51,10 @@ class InterruptAwareFilter:
         """Safely execute callback."""
         try:
             if callable(callback):
-                callback(*args)
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(*args)
+                else:
+                    callback(*args)
         except Exception as e:
             logger.error(f"Interrupt callback error: {e}")
     

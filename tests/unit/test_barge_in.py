@@ -229,19 +229,25 @@ class TestInterruptAwareFilter:
         return InterruptAwareFilter(handler)
     
     def test_process_non_final_message(self, filter):
+        from bridge.openclaw_middleware import MessageMetadata
         msg = TaggedMessage(
-            message="Thinking...",
-            message_type=MessageType.THINKING,
-            speakability=Speakability.SILENT,
+            content="Thinking...",
+            metadata=MessageMetadata(
+                message_type=MessageType.THINKING,
+                speakable=Speakability.SILENT,
+            ),
         )
         result = filter.process_message(msg)
         assert result == msg
     
     def test_process_final_message(self, filter):
+        from bridge.openclaw_middleware import MessageMetadata
         msg = TaggedMessage(
-            message="Hello",
-            message_type=MessageType.FINAL,
-            speakability=Speakability.SPEAK,
+            content="Hello",
+            metadata=MessageMetadata(
+                message_type=MessageType.FINAL,
+                speakable=Speakability.SPEAK,
+            ),
         )
         result = filter.process_message(msg)
         assert result is not None
@@ -252,10 +258,13 @@ class TestInterruptAwareFilter:
         # Simulate interruption
         filter._interrupted = True
         
+        from bridge.openclaw_middleware import MessageMetadata
         msg = TaggedMessage(
-            message="Hello",
-            message_type=MessageType.FINAL,
-            speakability=Speakability.SPEAK,
+            content="Hello",
+            metadata=MessageMetadata(
+                message_type=MessageType.FINAL,
+                speakable=Speakability.SPEAK,
+            ),
         )
         result = filter.process_message(msg)
         assert result is None
