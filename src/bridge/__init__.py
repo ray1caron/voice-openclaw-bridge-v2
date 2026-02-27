@@ -92,6 +92,16 @@ from bridge.session_recovery import (
     RecoveryResult,
     get_session_recovery,
 )
+# Phase 5: Voice Components
+from bridge.voice_orchestrator import (
+    VoiceOrchestrator,
+    OrchestratorConfig,
+    OrchestratorState,
+    InteractionSession,
+    OrchestratorStats,
+    create_from_config,
+    run_orchestrator,
+)
 
 __all__ = [
     "AppConfig",
@@ -165,4 +175,12 @@ __all__ = [
     "RecoveryStatus",
     "RecoveryResult",
     "get_session_recovery",
+    # Voice Orchestrator (Phase 5)
+    "VoiceOrchestrator",
+    "OrchestratorConfig",
+    "OrchestratorState",
+    "InteractionSession",
+    "OrchestratorStats",
+    "create_from_config",
+    "run_orchestrator",
 ]
