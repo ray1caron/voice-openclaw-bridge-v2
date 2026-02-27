@@ -1,7 +1,8 @@
 # Test Environment Setup Guide
 
 **Location:** `/home/hal/.openclaw/workspace/voice-bridge-v2/`
-**Last Updated:** 2026-02-27
+**Version:** 0.2.0
+**Last Updated:** 2026-02-27 12:30 PST
 **Python 3.12:** Requires `tzdata>=2023.3` for pydantic-settings timezone support
 
 ## Quick Start
@@ -47,10 +48,45 @@ python3 -m pytest tests/ -v -m "not slow and not hardware"
 **Required for Python 3.12:**
 - `tzdata>=2023.3` - Timezone database for `pydantic-settings` timezone support
 
-**Installation:**
+### Phase 5 Dependencies (Voice Assistant)
+
+**Version 0.2.0 - Phase 5 Complete:**
+
+| Component | Package | Version | Purpose |
+|-----------|---------|---------|---------|
+| STT | `faster-whisper` | >=1.0 | Speech-to-text (Whisper models) |
+| TTS | `piper-tts` | >=1.2 | Text-to-speech synthesis |
+| TTS Engine | `onnxruntime` | >=1.16 | ONNX inference for TTS |
+| Audio Processing | `numpy` | >=1.24 | Audio array operations |
+| Audio I/O | `sounddevice` | >=0.5 | Audio capture/playback |
+| Audio Files | `soundfile` | >=0.12 | Audio file read/write |
+| Wake Word | `pvporcupine` | >=3.0 | Wake word detection |
+| Audio Recording | `pvrecorder` | >=1.2 | Audio recording for Porcupine |
+| WebSocket | `websockets` | >=12.0 | OpenClaw WebSocket client |
+| Timezone | `tzdata` | >=2023.3 | Python 3.12 timezone support |
+
+**All Phase 5 Dependencies:**
 ```bash
-pip install tzdata
+# Install all Phase 5 dependencies
+pip install --break-system-packages faster-whisper piper-tts onnxruntime \
+                                     numpy sounddevice soundfile \
+                                     pvporcupine pvrecorder websockets tzdata
 ```
+
+**Installation from pyproject.toml:**
+```bash
+cd /home/hal/.openclaw/workspace/voice-bridge-v2
+
+# Install all dependencies from pyproject.toml
+pip install --break-system-packages -e .
+
+# Or install Phase 5 components only
+pip install --break-system-packages faster-whisper piper-tts onnxruntime \
+                                     numpy sounddevice soundfile \
+                                     pvporcupine pvrecorder websockets tzdata
+```
+
+**Installation:**
 
 **Why it's needed:**
 - `pydantic-settings>=2.0` uses `zoneinfo._tzpath`
@@ -95,6 +131,10 @@ voice-bridge-v2/
 │   ├── unit/                # Unit tests (~404 passing)
 │   │   ├── __init__.py
 │   │   ├── conftest.py      # Fixtures & mocks
+│   │   ├── test_stt_worker.py              # Phase 5 Day 1 (27 tests) ✅
+│   │   ├── test_tts_worker.py              # Phase 5 Day 2 (24 tests) ✅
+│   │   ├── test_wake_word.py              # Phase 5 Day 3 (22 tests) ✅
+│   │   ├── test_voice_orchestrator.py      # Phase 5 Day 4 (26 tests) ✅
 │   │   └── test_*.py
 │   ├── integration/         # Integration tests (Issue #24)
 │   │   ├── __init__.py
@@ -174,6 +214,86 @@ The repository includes GitHub Actions CI at `.github/workflows/ci.yml`:
 - `test_tool_chain_manager.py` - Tool chains ✅
 - `test_vad.py` - Voice Activity Detection
 - `test_audio_pipeline.py` - Audio pipeline
+
+### Phase 5 Unit Tests (NEW - Phase 5 Complete)
+
+#### `test_stt_worker.py` - STT Worker Tests (Day 1)
+**File:** `tests/unit/test_stt_worker.py`
+**Tests:** 27 unit tests
+**Status:** ✅ Complete
+
+Tests the Faster-Whisper STT worker:
+- Configuration validation (model, compute type, device)
+- Initialization with defaults/custom params
+- Async and sync transcription methods
+- Audio preprocessing (normalizing, resampling)
+- Statistics tracking
+- Mock-based tests (no real Whisper required)
+
+#### `test_tts_worker.py` - TTS Worker Tests (Day 2)
+**File:** `tests/unit/test_tts_worker.py`
+**Tests:** 24 unit tests
+**Status:** ✅ Complete
+
+Tests the Piper TTS worker:
+- Configuration validation (voice model, speed, volume)
+- Initialization with defaults/custom params
+- Streaming vs non-streaming synthesis
+- Async synthesis methods
+- Statistics tracking
+- Mock-based tests (no real Piper required)
+
+#### `test_wake_word.py` - Wake Word Detector Tests (Day 3)
+**File:** `tests/unit/test_wake_word.py`
+**Tests:** 22 unit tests
+**Status:** ✅ Complete
+
+Tests the Porcupine wake word detector:
+- Configuration validation (sensitivity, device)
+- Built-in wake word support (computer, porcupine, etc.)
+- Async event-driven detection
+- Callback notifications
+- Statistics tracking
+- Mock-based tests (no real Porcupine required)
+
+#### `test_voice_orchestrator.py` - Voice Orchestrator Tests (Day 4)
+**File:** `tests/unit/test_voice_orchestrator.py`
+**Tests:** 26 unit tests
+**Status:** ✅ Complete
+
+Tests the main voice assistant orchestrator:
+- Configuration validation
+- Component initialization (all 7 components)
+- State machine management
+- Event callback system
+- Statistics tracking
+- Session tracking per interaction
+- Runtime configuration changes
+
+**Phase 5 Unit Test Total:** 99 tests (27 + 24 + 22 + 26)
+
+### Phase 5 Integration Tests (NEW - Phase 5 Complete)
+
+#### `test_voice_e2e.py` - Voice Assistant E2E Tests (Day 6)
+**File:** `tests/integration/test_voice_e2e.py`
+**Tests:** 7 integration tests
+**Status:** ✅ Created
+
+Tests the complete voice assistant flow:
+- Full interaction flow (wake word → capture → STT → OpenClaw → TTS → play)
+- Barge-in interruption during TTS playback
+- Multiple sequential interactions
+- Error handling and recovery
+- Callback system functionality
+- Statistics aggregation across interactions
+- Performance benchmarks (wake word detection, interaction latency)
+
+**Requires Real Dependencies:**
+- These tests import real components (not just mocks)
+- Requires: faster-whisper, piper-tts, onnxruntime, etc.
+- Install with: `pip install --break-system-packages -e .`
+
+**Phase 5 Total Tests:** 106 tests (99 unit + 7 integration)
 
 ### Integration Tests (Issue #24 - New)
 
