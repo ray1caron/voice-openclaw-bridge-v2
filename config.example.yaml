@@ -1,0 +1,61 @@
+# Voice-OpenClaw Bridge v2 Configuration
+
+# OpenClaw Gateway Connection
+openclaw:
+  # HTTP API endpoint
+  http_base_url: "http://127.0.0.1:18789"
+
+  # Auth token (matches ~/.openclaw/openclaw.json gateway.auth.token)
+  # Can also set via OPENCLAW_AUTH_TOKEN environment variable
+  auth_token: "2fb4459127f320829acfd1b14b0174dd8358d6eb02d141f9"
+
+  # WebSocket endpoint (alternative to HTTP API)
+  ws_url: "ws://127.0.0.1:18789"
+
+  # Session to use for voice assistant
+  session_key: "main"
+
+  # Default model (overrides OpenClaw defaults for voice sessions)
+  default_model: "ollama/glm-4.7:cloud"
+
+  # Timeouts (seconds)
+  connect_timeout: 5.0
+  request_timeout: 30.0
+  response_timeout: 60.0
+
+# Audio Configuration
+audio:
+  input_device: "default"  # Or device name/index
+  output_device: "default"
+  sample_rate: 16000
+  channels: 1
+  chunk_size: 1024
+
+# Speech-to-Text (Whisper)
+stt:
+  model: "base"  # tiny, base, small, medium, large
+  language: "auto"
+  device: "auto"  # cpu, cuda, auto
+  compute_type: "int8"  # int8, float16, float32
+
+# Text-to-Speech (Piper)
+tts:
+  voice: "en_US-lessac-medium"
+  speed: 1.0
+  volume: 1.0
+
+# Bridge Behavior
+bridge:
+  wake_word: "hey hal"
+  response_timeout: 10.0
+  max_session_duration: 300.0
+  log_level: "INFO"
+  hot_reload: true
+
+# Session Persistence
+persistence:
+  enabled: true
+  db_path: null  # Uses default: ~/.voice-bridge/sessions.db
+  ttl_minutes: 30
+  max_history: 10
+  cleanup_interval: 60
