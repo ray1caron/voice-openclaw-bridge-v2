@@ -84,20 +84,20 @@ class TestVoiceAssistantE2E:
         # Mock TTS synthesis
         mock_tts_audio = np.random.uniform(-0.1, 0.1, 16000).astype(np.float32)
 
-        # Set up mocks
-        with patch.object(orchestrator._wake_word.__class__, 'listen') as mock_listen:
+        # Set up mocks using AsyncMock for async methods
+        with patch.object(orchestrator._wake_word, 'listen', new_callable=AsyncMock) as mock_listen:
             mock_listen.return_value = wake_event
 
-            with patch.object(orchestrator._audio.__class__, 'capture_audio') as mock_capture:
+            with patch.object(orchestrator._audio, 'capture_audio', new_callable=AsyncMock) as mock_capture:
                 mock_capture.return_value = (2000.0, mock_audio)
 
-                with patch.object(orchestrator._stt.__class__, 'transcribe') as mock_transcribe:
+                with patch.object(orchestrator._stt, 'transcribe', new_callable=AsyncMock) as mock_transcribe:
                     mock_transcribe.return_value = mock_transcription
 
-                    with patch.object(orchestrator._websocket.__class__, 'send_voice_input') as mock_send:
+                    with patch.object(orchestrator._websocket, 'send_voice_input', new_callable=AsyncMock) as mock_send:
                         mock_send.return_value = mock_server.get_response()
 
-                        with patch.object(orchestrator._tts.__class__, 'speak') as mock_speak:
+                        with patch.object(orchestrator._tts, 'speak') as mock_speak:
                             async def mock_speak_gen():
                                 yield mock_tts_audio
                             mock_speak.return_value = mock_speak_gen()
@@ -172,19 +172,19 @@ class TestVoiceAssistantE2E:
         orchestrator._barge_in = Mock()
         orchestrator._barge_in.check_interruption = Mock(side_effect=check_interruption_side_effect)
 
-        with patch.object(orchestrator._wake_word.__class__, 'listen') as mock_listen:
+        with patch.object(orchestrator._wake_word, 'listen', new_callable=AsyncMock) as mock_listen:
             mock_listen.return_value = wake_event
 
-            with patch.object(orchestrator._audio.__class__, 'capture_audio') as mock_capture:
+            with patch.object(orchestrator._audio, 'capture_audio', new_callable=AsyncMock) as mock_capture:
                 mock_capture.return_value = (1000.0, mock_audio)
 
-                with patch.object(orchestrator._stt.__class__, 'transcribe') as mock_transcribe:
+                with patch.object(orchestrator._stt, 'transcribe', new_callable=AsyncMock) as mock_transcribe:
                     mock_transcribe.return_value = mock_transcription
 
-                    with patch.object(orchestrator._websocket.__class__, 'send_voice_input') as mock_send:
+                    with patch.object(orchestrator._websocket, 'send_voice_input', new_callable=AsyncMock) as mock_send:
                         mock_send.return_value = mock_server.get_response()
 
-                        with patch.object(orchestrator._tts.__class__, 'speak', side_effect=interrupted_tts):
+                        with patch.object(orchestrator._tts, 'speak', side_effect=interrupted_tts):
                             # Run interaction with interruption
                             await orchestrator._handle_wake_word()
                             await orchestrator._process_interaction()
@@ -433,7 +433,7 @@ class TestVoiceAssistantE2E:
         orchestrator._barge_in.check_interruption = Mock(return_value=False)
 
         # Simulate varying interaction times by adding delays
-        async def slow_interaction():
+        async def slow_interaction(text: str):
             await asyncio.sleep(0.01)
             return mock_server.get_response()
 
