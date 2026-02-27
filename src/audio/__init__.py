@@ -28,6 +28,14 @@ from .tts_worker import (
     TTSStats,
     TTSResult,
 )
+from .wake_word import (
+    WakeWordDetector,
+    WakeWordConfig,
+    WakeWordState,
+    SensitivityLevel,
+    BuiltInWakeWord,
+    WakeWordEvent,
+)
 
 __all__ = [
     'BargeInState',
@@ -50,4 +58,10 @@ __all__ = [
     'VoiceModel',
     'TTSStats',
     'TTSResult',
+    'WakeWordDetector',
+    'WakeWordConfig',
+    'WakeWordState',
+    'SensitivityLevel',
+    'BuiltInWakeWord',
+    'WakeWordEvent',
 ]
