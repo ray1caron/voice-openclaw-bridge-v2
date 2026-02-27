@@ -75,7 +75,10 @@ class TestVoiceAssistantE2E:
         mock_transcription = TranscriptionResult(
             text="Hello OpenClaw",
             confidence=0.92,
-            time_ms=150.0,
+            language="en",
+            duration_ms=150.0,
+            segments_count=1,
+            latency_ms=150.0,
         )
 
         # Mock TTS synthesis
@@ -141,7 +144,10 @@ class TestVoiceAssistantE2E:
         mock_transcription = TranscriptionResult(
             text="Hello",
             confidence=0.90,
-            time_ms=100.0,
+            language="en",
+            duration_ms=100.0,
+            segments_count=1,
+            latency_ms=100.0,
         )
 
         # Mock TTS that will be interrupted
@@ -253,7 +259,10 @@ class TestVoiceAssistantE2E:
             orchestrator._stt.transcribe.return_value = TranscriptionResult(
                 text=f"Request {i+1}",
                 confidence=0.90,
-                time_ms=100.0,
+                language="en",
+                duration_ms=100.0,
+                segments_count=1,
+                latency_ms=100.0,
             )
 
             await orchestrator._handle_wake_word()
@@ -350,7 +359,10 @@ class TestVoiceAssistantE2E:
         transcription = TranscriptionResult(
             text="Test input",
             confidence=0.90,
-            time_ms=100.0,
+            language="en",
+            duration_ms=100.0,
+            segments_count=1,
+            latency_ms=100.0,
         )
         orchestrator._stt.transcribe = AsyncMock(return_value=transcription)
 
@@ -400,7 +412,14 @@ class TestVoiceAssistantE2E:
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = Mock()
-        orchestrator._stt.transcribe = AsyncMock(return_value=TranscriptionResult("Test", 0.9, 100.0))
+        orchestrator._stt.transcribe = AsyncMock(return_value=TranscriptionResult(
+            "Test",
+            0.9,
+            language="en",
+            duration_ms=100.0,
+            segments_count=1,
+            latency_ms=100.0,
+        ))
 
         orchestrator._tts = Mock()
         async def mock_tts(text):
@@ -485,7 +504,14 @@ class TestPerformanceBenchmarks:
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = Mock()
-        orchestrator._stt.transcribe = AsyncMock(return_value=TranscriptionResult("Test", 0.9, 100.0))
+        orchestrator._stt.transcribe = AsyncMock(return_value=TranscriptionResult(
+            "Test",
+            0.9,
+            language="en",
+            duration_ms=100.0,
+            segments_count=1,
+            latency_ms=100.0,
+        ))
 
         orchestrator._tts = Mock()
         async def mock_tts(text):
