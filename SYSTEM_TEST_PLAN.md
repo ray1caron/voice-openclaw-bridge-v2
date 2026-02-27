@@ -1,11 +1,12 @@
 # Voice-OpenClaw Bridge v2 - System Test Plan
 
 ## Document Information
-**Version:** 1.0  
-**Date:** 2026-02-26  
-**Last Revised:** 2026-02-26 09:13 PST  
+**Version:** 2.0  
+**Date:** 2026-02-27  
+**Last Revised:** 2026-02-27 12:40 PST  
 **Status:** Active  
 **Author:** OpenClaw Agent
+**Phase Status:** Phase 1-5 Complete ✅
 
 ---
 
@@ -26,10 +27,28 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
+│                     PHASE 5: VOICE ASSISTANT                     │
+│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────────┐  │
+│  │ Wake Word    │  │ STT Worker  │  │ TTS Worker           │  │
+│  │ Detector     │  │ (Whisper)   │  │ (Piper)              │  │
+│  └──────────────┘  └─────────────┘  └──────────────────────┘  │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
 │                    AUDIO PIPELINE (Sprint 1/4)                  │
 │  ┌──────────────┐  ┌─────────────┐  ┌──────────────────────┐  │
 │  │ Audio I/O    │  │ VAD         │  │ Barge-In Handler     │  │
 │  │ Capture      │◄─┤ Detection   │◄─┤ (Issue #8)           │  │
+│  └──────────────┘  └─────────────┘  └──────────────────────┘  │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│               VOICE ORCHESTRATOR (Phase 5 Day 4)                │
+│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────────┐  │
+│  │ Main Event   │  │ State Mgr   │  │ Statistics           │  │
+│  │ Loop         │  │ (5 states)  │  │ & Callbacks          │  │
 │  └──────────────┘  └─────────────┘  └──────────────────────┘  │
 └────────────────────┬────────────────────────────────────────────┘
                      │
@@ -68,6 +87,44 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
 
 ---
 
+## Phase 5: Voice Assistant Integration
+
+**Status:** ✅ Complete  
+**Version:** 0.2.0  
+**Completion Date:** 2026-02-27  
+
+### Phase 5 Components
+
+| Component | Days | Lines | Tests | Status |
+|-----------|------|-------|-------|--------|
+| STT Worker (Whisper) | Day 1 | 437 | 27 | ✅ Complete |
+| TTS Worker (Piper) | Day 2 | 270 | 24 | ✅ Complete |
+| Wake Word Detector | Day 3 | 280 | 22 | ✅ Complete |
+| Voice Orchestrator | Day 4 | 430 | 26 | ✅ Complete |
+| Audio I/O Setup | Day 5 | ~100 | N/A | ✅ Complete |
+| E2E Testing | Day 6 | ~500 | 7 | ✅ Complete |
+| **Total** | **6 days** | **~2,017** | **106** | **✅ 100%** |
+
+### Phase 5 Test Audio Fixtures
+
+**Location:** `tests/fixtures/audio/`  
+
+**Purpose:** Real audio files for end-to-end testing
+
+**Files:** 8 synthetic audio files (FLAC + WAV each)
+- `silence_2s.flac` - Silence detection testing
+- `tone_440hz_2s.flac` - Audio path testing
+- `speech_like_2s.flac` - STT pipeline testing
+- `speech_short_1s.flac` - Quick tests
+- `speech_long_5s.flac` - Long transcriptions
+- `speech_low_volume.flac` - Normalization testing
+- `speech_high_volume.flac` - Clipping testing
+- `speech_stereo_2s.flac` - Channel handling
+
+**Generation:** `python3 generate_test_audio.py`
+
+---
+
 ## Sprint Status
 
 | Sprint | Status | Completion | Key Components |
@@ -76,6 +133,7 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
 | Sprint 2: Tool Integration | ✅ Complete | 100% | Middleware, Tool Chains |
 | Sprint 3: Conversation Persistence | ✅ Complete | 100% | SQLite persistence, recovery |
 | Sprint 4: Polish | ✅ Complete | 100% | Barge-In (Issue #8) |
+| **Phase 5: Voice Assistant** | **✅ Complete** | **100%** | **STT, TTS, Wake Word, Orchestrator** |
 
 ---
 
@@ -84,16 +142,31 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
 ### 1. Unit Tests
 **Scope:** Individual module functionality  
 **Location:** `tests/unit/`  
-**Count:** ~430 tests  
+**Count:** ~500+ tests (Phase 5 adds 99)  
 **Status:** All passing  
 
 ### 2. Integration Tests
 **Scope:** Module interactions  
 **Location:** `tests/integration/`  
-**Count:** ~50+ tests  
+**Count:** ~60+ tests (Phase 5 adds 7 E2E)  
 **Status:** All passing  
 
-### 3. System Tests
+### 3. Phase 5 Voice Assistant Tests
+**Scope:** Voice component integration  
+**Location:** `tests/unit/` + `tests/integration/`  
+**Count:** 106 tests (99 unit + 7 E2E)  
+**Status:** Complete  
+
+**Phase 5 Unit Tests:**
+- `test_stt_worker.py` - STT Worker (27 tests)
+- `test_tts_worker.py` - TTS Worker (24 tests)
+- `test_wake_word.py` - Wake Word Detector (22 tests)
+- `test_voice_orchestrator.py` - Voice Orchestrator (26 tests)
+
+**Phase 5 E2E Tests:**
+- `test_voice_e2e.py` - Voice Assistant End-to-End (7 tests)
+
+### 4. System Tests
 **Scope:** End-to-end workflows  
 **Location:** This plan defines scope  
 **Count:** TBD  
@@ -114,6 +187,25 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
 - pytest-asyncio 1.3+
 - sounddevice (optional, for real audio)
 - `tzdata>=2023.3` (required for Python 3.12 for pydantic-settings timezone support)
+
+### Phase 5 Dependencies (Voice Assistant)
+These are required for Phase 5 voice functionality:
+
+| Component | Package | Version | Purpose |
+|-----------|---------|---------|---------|
+| STT | `faster-whisper` | >=1.0 | Speech-to-text (Whisper models) |
+| TTS | `piper-tts` | >=1.2 | Text-to-speech synthesis |
+| TTS Engine | `onnxruntime` | >=1.16 | ONNX inference for TTS |
+| Audio | `numpy`, `sounddevice`, `soundfile` | Latest | Audio processing |
+| Wake Word | `pvporcupine`, `pvrecorder` | Latest | Wake word detection |
+| WebSocket | `websockets` | >=12.0 | OpenClaw client |
+
+**Installation:**
+```bash
+pip install --break-system-packages faster-whisper piper-tts onnxruntime \
+                                     numpy sounddevice soundfile \
+                                     pvporcupine pvrecorder websockets tzdata
+```
 
 ### Python 3.12 Specific Requirements
 For Python 3.12 environments, install tzdata:
@@ -136,6 +228,112 @@ export OPENCLAW_API_KEY=your_key_here
 ---
 
 ## System Test Scope
+
+### Phase 5 End-to-End Tests (Voice Assistant)
+
+#### ST-P5-001: Wake Word to Response Complete Flow
+**Objective:** Verify complete voice assistant cycle  
+**Priority:** P0  
+**Dependencies:** Phase 5 components, audio devices
+
+**Test Steps:**
+1. Initialize VoiceOrchestrator with test audio fixtures
+2. Simulate wake word detection
+3. Simulate speech capture using `tests/fixtures/audio/speech_short_1s.flac`
+4. Verify STT transcription succeeds
+5. Send mock OpenClaw response
+6. Verify TTS synthesis succeeds
+7. Verify audio playback completes
+
+**Expected Results:**
+- Wake word detected in mock
+- Audio captured from test file
+- STT transcribes (silently, no audio output in test)
+- OpenClaw receives transcription
+- TTS synthesizes response (mock audio in test)
+- Statistics tracked correctly
+
+**Acceptance Criteria:**
+- [ ] Flow completes without errors
+- [ ] Statistics: 1 interaction recorded
+- [ ] State transitions: IDLE → LISTENING → PROCESSING → SPEAKING
+
+---
+
+#### ST-P5-002: Barge-In Interruption During TTS
+**Objective:** Verify interruption behavior during TTS playback  
+**Priority:** P0  
+**Dependencies:** Phase 5 components
+
+**Test Steps:**
+1. Start voice interaction
+2. Begin TTS playback (mocked streaming)
+3. Trigger barge-in interruption at chunk 3
+4. Verify TTS stops
+5. Verify interruption event fired
+6. Verify state returns to LISTENING
+
+**Expected Results:**
+- TTS streaming stops at interruption point
+- BargeInHandler detects interruption
+- Orchestrator updates state correctly
+- Session marked as interrupted
+
+**Acceptance Criteria:**
+- [ ] TTS stops within mock interruption detection
+- [ ] Interruption event type = BARGE_IN
+- [ ] State = LISTENING after interruption
+
+---
+
+#### ST-P5-003: Multiple Sequential Interactions
+**Objective:** Verify orchestrator handles multiple voice commands  
+**Priority:** P1  
+**Dependencies:** Phase 5 components
+
+**Test Steps:**
+1. Run 5 sequential interactions
+2. Each with different mock transcription
+3. Verify statistics track correctly
+4. Verify state machine reset after each
+5. Verify no memory leaks
+
+**Expected Results:**
+- 5 interactions completed
+- Stats: total = 5, successful = 5
+- State resets after each
+- Memory usage stable
+
+**Acceptance Criteria:**
+- [ ] 5 interactions, 5 successful
+- [ ] Average time calculated correctly
+- [ ] No state pollution between interactions
+
+---
+
+#### ST-P5-004: Callback System Functionality
+**Objective:** Verify event callbacks fire correctly  
+**Priority:** P1  
+**Dependencies:** Phase 5 components
+
+**Test Steps:**
+1. Set up all callbacks (wake_word, transcription, response, error)
+2. Run complete interaction flow
+3. Verify each callback fires correctly
+4. Verify callback receives correct data
+
+**Expected Results:**
+- All 4 callbacks fire
+- Callbacks receive correct event types/data
+- No callback crashes
+
+**Acceptance Criteria:**
+- [ ] WakeWordEvent passed to callback
+- [ ] Transcription text passed to callback
+- [ ] Response text passed to callback
+- [ ] No errors in callbacks
+
+---
 
 ### ST-001: Voice Pipeline End-to-End
 **Objective:** Verify complete audio → OpenClaw → response flow  
