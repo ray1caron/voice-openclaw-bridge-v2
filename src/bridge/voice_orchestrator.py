@@ -21,18 +21,18 @@ from typing import Optional, Callable
 from enum import Enum
 import structlog
 
-from bridge.audio.wake_word import (
+from audio.wake_word import (
     WakeWordDetector,
     WakeWordEvent,
     WakeWordConfig,
     BuiltInWakeWord,
 )
-from bridge.audio.stt_worker import (
+from audio.stt_worker import (
     STTWorker,
     TranscriptionResult,
     STTConfig,
 )
-from bridge.audio.tts_worker import (
+from audio.tts_worker import (
     TTSWorker,
     TTSConfig,
     TTSResult,

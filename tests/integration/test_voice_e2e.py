@@ -44,8 +44,8 @@ class TestVoiceAssistantE2E:
     async def test_full_interaction_flow(self):
         """Test complete interaction: wake word → capture → transcribe → OpenClaw → TTS"""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
         from pathlib import Path
 
         orchestrator = VoiceOrchestrator()
@@ -120,8 +120,8 @@ class TestVoiceAssistantE2E:
     async def test_barge_in_during_tts(self):
         """Test barge-in interruption during TTS playback."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
@@ -195,8 +195,8 @@ class TestVoiceAssistantE2E:
     async def test_multiple_interactions(self):
         """Test multiple sequential interactions."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
@@ -268,7 +268,7 @@ class TestVoiceAssistantE2E:
     async def test_error_handling(self):
         """Test error handling during interaction."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
+        from audio.wake_word import WakeWordEvent
 
         orchestrator = VoiceOrchestrator()
 
@@ -309,8 +309,8 @@ class TestVoiceAssistantE2E:
     async def test_callback_system(self):
         """Test event callback system works end-to-end."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
@@ -378,8 +378,8 @@ class TestVoiceAssistantE2E:
     async def test_statistics_aggregation(self):
         """Test statistics are correctly aggregated over multiple interactions."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
@@ -442,7 +442,7 @@ class TestPerformanceBenchmarks:
     @pytest.mark.slow
     async def test_wake_word_detection_latency(self):
         """Benchmark wake word detection latency."""
-        from bridge.audio.wake_word import WakeWordDetector
+        from audio.wake_word import WakeWordDetector
 
         detector = WakeWordDetector()
 
@@ -468,8 +468,8 @@ class TestPerformanceBenchmarks:
     async def test_interaction_latency(self):
         """Benchmark complete interaction latency."""
         from bridge.voice_orchestrator import VoiceOrchestrator
-        from bridge.audio.wake_word import WakeWordEvent
-        from bridge.audio.stt_worker import TranscriptionResult
+        from audio.wake_word import WakeWordEvent
+        from audio.stt_worker import TranscriptionResult
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
