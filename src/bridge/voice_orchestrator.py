@@ -45,7 +45,6 @@ from bridge.audio_pipeline import (
 from bridge.websocket_client import (
     OpenClawWebSocketClient as WebSocketClient,
     ConnectionState as WebSocketState,
-    ConnectionConfig,
 )
 from audio.barge_in import (
     BargeInState,
@@ -210,11 +209,8 @@ class VoiceOrchestrator:
             self._stt = STTWorker(config=stt_config)
 
         if self._websocket is None:
-            ws_config = ConnectionConfig(
-                url=self.config.websocket_url,
-                timeout=self.config.websocket_timeout,
-            )
-            self._websocket = WebSocketClient(config=ws_config)
+            # WebSocketClient uses get_config().openclaw if config=None
+            self._websocket = WebSocketClient(config=None)
 
         if self._tts is None:
             tts_config = TTSConfig(
