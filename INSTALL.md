@@ -1,8 +1,8 @@
 # Voice-OpenClaw Bridge v2 - Installation & Setup Guide
 
-**Version:** MVP (Phase 1)  
-**Last Updated:** 2026-02-25  
-**Status:** Ready for Deployment
+**Version:** 0.2.0 (Phase 5 Complete)
+**Last Updated:** 2026-02-27 12:22 PST
+**Status:** Phase 5 Complete - Voice Assistant Integration Done
 
 ---
 

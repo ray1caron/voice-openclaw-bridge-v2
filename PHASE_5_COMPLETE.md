@@ -2,7 +2,8 @@
 
 **Voice-OpenClaw Bridge v2 - Voice Assistant Integration**
 
-**Date:** 2026-02-27
+**Version:** 0.2.0
+**Date:** 2026-02-27 12:22 PST
 **Duration:** ~60 minutes
 **Status:** ✅ **COMPLETE** - 100% DONE
 

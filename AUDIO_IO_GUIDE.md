@@ -1,6 +1,9 @@
 # Audio I/O Configuration Guide
 
-**Phase 5 Day 5 - Audio Input/Output Setup**
+**Voice-OpenClaw Bridge v2**
+**Version:** 0.2.0
+**Last Updated:** 2026-02-27 12:22 PST
+**Phase:** 5 Day 5 - Audio Input/Output Setup
 
 This guide covers audio device configuration for the Voice-OpenClaw Bridge.
 

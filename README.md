@@ -1,27 +1,66 @@
-# Voice Assistant - Hal
+# Voice-OpenClaw Bridge v2
 
-A personalized, locally running AI voice assistant powered by OpenAI Whisper, Ollama LLM, and Piper TTS. 
-This is a fork of Robin-07's excellent local-voice project, customized for RTX 5070 GPU acceleration.
+**Version:** 0.2.0
+**Last Updated:** 2026-02-27
+**Status:** Phase 5 Complete ✅
+
+A bidirectional voice interface for OpenClaw AI assistant.
 
 ## Overview
 
-An AI Voicebot based on a 3-stage (STT → LLM → TTS) pipeline:
+Voice-OpenClaw Bridge v2 enables voice interactions with OpenClaw through a complete voice assistant pipeline:
 1. **Wake Word Detection** (Porcupine) - "Computer" triggers activation
-2. **Speech-to-Text** (Whisper medium) - CUDA-accelerated on RTX 5070
-3. **LLM Processing** (Ollama qwen2.5:14b) - 8GB VRAM, fast responses
-4. **Text-to-Speech** (Piper TTS) - Amy voice, natural sounding
+2. **Speech Capture** - Audio capture with VAD and silence detection
+3. **Speech-to-Text** (Faster-Whisper) - Transcribe audio to text
+4. **OpenClaw Integration** (WebSocket) - Send/receive responses
+5. **Text-to-Speech** (Piper TTS) - Synthesize response to audio
+6. **Audio Playback** - Play with barge-in/interruption support
 
 **Architecture:**
 ```
-Wake Word → VAD → Whisper → Ollama → Piper → Speakers
+Wake Word → Audio Capture → STT → OpenClaw → TTS → Audio Playback → [Loop]
+                    ↑                                      ↓
+                    └─────────── Barge-In Handler ──────────┘
 ```
 
 **Key Features:**
-- Sub-1s latency with streaming response
-- Voice activity detection (WebRTC VAD)
-- Interruption handling (barge-in support)
-- Fully local - no cloud dependencies
-- GPU-accelerated on RTX 5070 (16GB VRAM)
+- Complete voice interaction loop implemented
+- Barge-in/interruption support during TTS playback
+- Comprehensive statistics tracking
+- Event callback system for monitoring
+- Full test coverage (99 unit tests + 7 E2E tests)
+- Python 3.10-3.12 support
+
+---
+
+## Phase 5 Status: COMPLETE ✅
+
+**Completed:** 2026-02-27
+**Duration:** ~60 minutes
+**Progress:** 6/6 days complete (100%)
+
+### Components Implemented:
+
+| Component | Status | Lines | Tests |
+|-----------|--------|-------|-------|
+| STT Worker | ✅ Complete | 437 | 27 |
+| TTS Worker | ✅ Complete | 270 | 24 |
+| Wake Word Detector | ✅ Complete | 280 | 22 |
+| Voice Orchestrator | ✅ Complete | 430 | 26 |
+| Audio I/O | ✅ Complete | 100+ | N/A |
+| E2E Tests | ✅ Complete | 500+ | 7 |
+| **Total** | **✅ 100%** | **~2,017** | **106** |
+
+### Integration Complete ✅
+
+All 7 voice components are integrated:
+- ✅ Wake Word Detector (Day 3)
+- ✅ Audio Pipeline (Sprint 1)
+- ✅ STT Worker (Day 1)
+- ✅ WebSocket Client (Sprint 1)
+- ✅ TTS Worker (Day 2)
+- ✅ Audio Playback (Sprint 1)
+- ✅ Barge-in Handler (Sprint 1)
 
 ---
 
@@ -43,21 +82,22 @@ Wake Word → VAD → Whisper → Ollama → Piper → Speakers
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `faster-whisper` | 1.2.1 | Speech-to-text (CUDA-accelerated) |
-| `sounddevice` | 0.5.5 | Audio I/O |
-| `webrtcvad` | 2.0.10 | Voice activity detection |
-| `piper-tts` | 1.4.1 | Text-to-speech |
-| `ollama` | 0.6.1 | LLM client |
-| `pvporcupine` | 4.0.2 | Wake word detection |
-| `pvrecorder` | 1.2.7 | Audio recording for Porcupine |
-| `numpy` | 2.4.2 | Array processing |
-| `onnxruntime` | 1.24.2 | ML inference (TTS) |
-| `ctranslate2` | 4.7.1 | Optimized Whisper inference |
+| `faster-whisper` | >=1.0 | Speech-to-text (Whisper) |
+| `piper-tts` | >=1.2 | Text-to-speech |
+| `onnxruntime` | >=1.16 | TTS inference engine |
+| `numpy` | >=1.24 | Audio array processing |
+| `sounddevice` | >=0.5 | Audio I/O |
+| `soundfile` | >=0.12 | Audio file handling |
+| `webrtcvad` | >=2.0 | Voice activity detection |
+| `pvporcupine` | >=3.0 | Wake word detection |
+| `pvrecorder` | >=1.2 | Audio recording for wake word |
+| `websockets` | >=12.0 | WebSocket client for OpenClaw |
+| `tzdata` | >=2023.3 | Timezone support (Python 3.12) |
 
 ### System Dependencies
-- Python 3.12+
-- PortAudio (`portaudio19-dev`)
-- CUDA 12.x (for GPU acceleration)
+- Python 3.10, 3.11, or 3.12
+- PortAudio (for sounddevice)
+- Optional: CUDA for faster whisper GPU acceleration
 - Ollama (already installed)
 
 ---
