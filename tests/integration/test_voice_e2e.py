@@ -46,9 +46,22 @@ class TestVoiceAssistantE2E:
         from bridge.voice_orchestrator import VoiceOrchestrator
         from audio.wake_word import WakeWordEvent
         from audio.stt_worker import TranscriptionResult
+        from pathlib import Path
 
         orchestrator = VoiceOrchestrator()
         mock_server = MockOpenClawServer()
+
+        # Use real test audio file
+        audio_file = Path("tests/fixtures/audio/speech_short_1s.flac")
+        if not audio_file.exists():
+            pytest.skip(f"Test audio file not found: {audio_file}")
+
+        import soundfile as sf
+        audio_data, sample_rate = sf.read(audio_file)
+
+        # Convert to bytes (what audio pipeline would provide)
+        import struct
+        mock_audio = audio_data.tobytes()
 
         # Mock wake word detection
         wake_event = WakeWordEvent(
@@ -57,9 +70,6 @@ class TestVoiceAssistantE2E:
             timestamp=1234567890.0,
             frame_index=100,
         )
-
-        # Mock audio capture
-        mock_audio = b"mock_audio_data"
 
         # Mock STT transcription
         mock_transcription = TranscriptionResult(

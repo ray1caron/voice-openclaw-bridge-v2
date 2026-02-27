@@ -274,6 +274,30 @@ Tests the main voice assistant orchestrator:
 
 ### Phase 5 Integration Tests (NEW - Phase 5 Complete)
 
+#### Test Audio Files
+
+**Location:** `tests/fixtures/audio/`
+
+**Generated Files:**
+- `silence_2s.flac/.wav` - Silence for testing silence detection
+- `tone_440hz_2s.flac/.wav` - Pure tone for audio path testing
+- `speech_like_2s.flac/.wav` - Speech-like audio for STT testing
+- `speech_short_1s.flac/.wav` - Short phrase (1 second)
+- `speech_long_5s.flac/.wav` - Long phrase (5 seconds) for longer transcriptions
+- `speech_low_volume.flac/.wav` - Low volume for normalization testing
+- `speech_high_volume.flac/.wav` - High volume for clipping testing
+- `speech_stereo_2s.flac/.wav` - Stereo audio for channel handling testing
+
+**Generation Script:**
+```bash
+python3 generate_test_audio.py
+```
+
+**Format:** FLAC (lossless) + WAV (compatibility)
+**Sample Rate:** 16000 Hz (standard for Whisper/STT)
+
+These audio files are synthetic (not real speech) but have speech-like characteristics for testing the audio pipeline.
+
 #### `test_voice_e2e.py` - Voice Assistant E2E Tests (Day 6)
 **File:** `tests/integration/test_voice_e2e.py`
 **Tests:** 7 integration tests
