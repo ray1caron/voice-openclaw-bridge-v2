@@ -123,6 +123,10 @@ pip install faster-whisper>=1.0 numpy>=1.24 onnxruntime>=1.16
 # Install database and utilities
 pip install aiosqlite>=0.19 platformdirs>=3.0 rich>=13.0 typer>=0.9 watchdog>=3.0 structlog>=23.0 python-dotenv>=1.0 pydantic-settings>=2.0
 
+# IMPORTANT: Install tzdata for Python 3.12 (required for pydantic-settings)
+# This fixes KeyError: 'zoneinfo._tzpath' when running tests
+pip install tzdata>=2023.3
+
 # Install test dependencies (optional but recommended)
 pip install pytest>=7.0 pytest-asyncio>=0.21 structlog>=23.0 python-dotenv>=1.0 pydantic-settings>=2.0
 
@@ -191,6 +195,9 @@ echo "Installation complete!"
 **Testing:**
 - `pytest` (7.0+) - Test framework
 - `pytest-asyncio` (0.21+) - Async test support
+
+**Python 3.12 Specific:**
+- `tzdata` (2023.3+) - Timezone database (required for pydantic-settings timezone support on Python 3.12)
 
 ---
 

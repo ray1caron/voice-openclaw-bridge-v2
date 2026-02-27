@@ -1,7 +1,8 @@
 # Test Environment Setup Guide
 
 **Location:** `/home/hal/.openclaw/workspace/voice-bridge-v2/`
-**Last Updated:** 2026-02-25
+**Last Updated:** 2026-02-27
+**Python 3.12:** Requires `tzdata>=2023.3` for pydantic-settings timezone support
 
 ## Quick Start
 
@@ -39,6 +40,22 @@ python3 -m pytest tests/ -v -m "not slow and not hardware"
 | pytest-asyncio | 1.3.0 | ✓ |
 | pytest-cov | 4.0.0 | ✓ |
 | pip | 24.0 | ✓ |
+| tzdata | 2023.3+ | ✓ Required (Python 3.12 pydantic-settings) |
+
+### Python 3.12 Dependencies
+
+**Required for Python 3.12:**
+- `tzdata>=2023.3` - Timezone database for `pydantic-settings` timezone support
+
+**Installation:**
+```bash
+pip install tzdata
+```
+
+**Why it's needed:**
+- `pydantic-settings>=2.0` uses `zoneinfo._tzpath`
+- Python 3.12 requires tzdata for proper timezone handling
+- Without it, tests fail with: `KeyError: 'zoneinfo._tzpath'`
 
 ### CI Environment (GitHub Actions)
 
@@ -350,6 +367,20 @@ None - All current issues fixed ✅
 |-----------|-------|-----|
 | `test_tool_chain_manager.py` | `session_id` parameter not accepted | Added `session_id: Optional[str] = None` to `__init__()` |
 | `test_response_filter.py` | `filtered_text` only set when SPEAK | Always populate `filtered_text` with extracted text |
+
+### Recent Fixes (2026-02-27)
+| Issue | Root Cause | Fix |
+|-------|------------|-----|
+| `KeyError: 'zoneinfo._tzpath'` | Python 3.12 + pydantic-settings missing timezone database | Added `tzdata>=2023.3` dependency |
+| Tests failing with config errors | Missing tzdata package | Updated requirements in pyproject.toml and INSTALL.md |
+| Import errors in test_stt_worker.py | Module-level imports before mock applied | Moved imports inside test functions |
+
+**Documentation Updated:**
+- `pyproject.toml` - Added tzdata to dependencies
+- `INSTALL.md` - Added tzdata installation instructions
+- `TEST_ENVIRONMENT.md` - Added Python 3.12 requirements
+- `SYSTEM_TEST_PLAN.md` - Added tzdata to software requirements
+- `PYTHON_312_TESTING_REQUIREMENTS.md` - New doc explaining tzdata necessity
 
 ## Issue #24 Integration Test Summary
 

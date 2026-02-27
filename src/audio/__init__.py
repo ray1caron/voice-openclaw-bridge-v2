@@ -12,6 +12,22 @@ from .interrupt_filter import (
     InterruptMessage,
     InterruptAdapter,
 )
+from .stt_worker import (
+    STTWorker,
+    TranscriptionResult,
+    STTStats,
+    ModelSize,
+    ComputeType,
+    DeviceType,
+)
+from .tts_worker import (
+    TTSWorker,
+    TTSConfig,
+    TTSState,
+    VoiceModel,
+    TTSStats,
+    TTSResult,
+)
 
 __all__ = [
     'BargeInState',
@@ -22,4 +38,16 @@ __all__ = [
     'InterruptAwareFilter',
     'InterruptMessage',
     'InterruptAdapter',
+    'STTWorker',
+    'TranscriptionResult',
+    'STTStats',
+    'ModelSize',
+    'ComputeType',
+    'DeviceType',
+    'TTSWorker',
+    'TTSConfig',
+    'TTSState',
+    'VoiceModel',
+    'TTSStats',
+    'TTSResult',
 ]

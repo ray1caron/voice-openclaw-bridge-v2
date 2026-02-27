@@ -29,6 +29,7 @@ dependencies = [
     "pydantic-settings>=2.0",
     "pyyaml>=6.0",
     "structlog>=23.0",
+    "tzdata>=2023.3",  # Required for pydantic-settings timezone support on Python 3.12
     
     # Async & Networking
     "websockets>=12.0",

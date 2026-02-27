@@ -11,17 +11,6 @@ import numpy as np
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from audio.stt_worker import (
-    STTWorker,
-    TranscriptionResult,
-    STTStats,
-    ModelSize,
-    ComputeType,
-    DeviceType,
-    transcribe_file,
-    create_from_config,
-)
-
 
 class TestSTTWorkerInit:
     """Tests for STT worker initialization."""
@@ -32,6 +21,9 @@ class TestSTTWorkerInit:
         # Mock model loading
         mock_instance = Mock()
         mock_model.return_value = mock_instance
+
+        # Import AFTER mock is applied
+        from audio.stt_worker import STTWorker
 
         worker = STTWorker()
 
@@ -46,6 +38,8 @@ class TestSTTWorkerInit:
         """Test initialization with custom parameters."""
         mock_instance = Mock()
         mock_model.return_value = mock_instance
+
+        from audio.stt_worker import STTWorker
 
         worker = STTWorker(
             model_size="tiny",
@@ -62,33 +56,39 @@ class TestSTTWorkerInit:
     @patch("audio.stt_worker.WhisperModel")
     def test_init_invalid_model_size(self, mock_model):
         """Test initialization with invalid model size."""
+        from audio.stt_worker import STTWorker
+
         with pytest.raises(ValueError, match="Invalid model_size"):
             STTWorker(model_size="invalid")
 
-    def test_init_invalid_device(self):
+    @patch("audio.stt_worker.WhisperModel")
+    def test_init_invalid_device(self, mock_model):
         """Test initialization with invalid device."""
-        with patch("audio.stt_worker.WhisperModel"):
-            with pytest.raises(ValueError, match="Invalid device"):
-                STTWorker(device="invalid")
+        from audio.stt_worker import STTWorker
 
-    def test_init_invalid_compute_type(self):
-        """Test initialization with invalid compute type."""
-        with patch("audio.stt_worker.WhisperModel"):
-            with pytest.raises(ValueError, match="Invalid compute_type"):
-                STTWorker(compute_type="invalid")
+        with pytest.raises(ValueError, match="Invalid device"):
+            STTWorker(device="invalid")
 
     @patch("audio.stt_worker.WhisperModel")
+    def test_init_invalid_compute_type(self, mock_model):
+        """Test initialization with invalid compute type."""
+        from audio.stt_worker import STTWorker
+
+        with pytest.raises(ValueError, match="Invalid compute_type"):
+            STTWorker(compute_type="invalid")
+
+    @patch("audio.stt_worker.WhisperModel", side_effect=ImportError("No module named 'faster_whisper'"))
     def test_import_error_no_faster_whisper(self, mock_model):
         """Test handling of missing faster-whisper."""
-        mock_model.side_effect = ImportError("No module named 'faster_whisper'")
+        from audio.stt_worker import STTWorker
 
         with pytest.raises(ImportError, match="faster-whisper not installed"):
             STTWorker()
 
-    @patch("audio.stt_worker.WhisperModel")
+    @patch("audio.stt_worker.WhisperModel", side_effect=RuntimeError("Failed to load"))
     def test_load_error(self, mock_model):
         """Test handling of model load error."""
-        mock_model.side_effect = RuntimeError("Failed to load")
+        from audio.stt_worker import STTWorker
 
         with pytest.raises(RuntimeError, match="Failed to load Whisper model"):
             STTWorker()
@@ -99,6 +99,8 @@ class TestTranscriptionResult:
 
     def test_result_creation(self):
         """Test creating a transcription result."""
+        from audio.stt_worker import TranscriptionResult
+
         result = TranscriptionResult(
             text="Hello world",
             confidence=0.95,
@@ -115,6 +117,8 @@ class TestTranscriptionResult:
 
     def test_invalid_result(self):
         """Test result validation for empty text."""
+        from audio.stt_worker import TranscriptionResult
+
         result = TranscriptionResult(
             text="",
             confidence=0.0,
@@ -128,6 +132,8 @@ class TestTranscriptionResult:
 
     def test_whitespace_only_result(self):
         """Test result validation for whitespace-only text."""
+        from audio.stt_worker import TranscriptionResult
+
         result = TranscriptionResult(
             text="   ",
             confidence=0.5,
@@ -141,6 +147,8 @@ class TestTranscriptionResult:
 
     def test_valid_result_with_special_chars(self):
         """Test result with special characters is considered valid."""
+        from audio.stt_worker import TranscriptionResult
+
         result = TranscriptionResult(
             text="Hello, world! How are you?",
             confidence=0.9,
@@ -158,6 +166,8 @@ class TestSTTStats:
 
     def test_initial_stats(self):
         """Test initial statistics are zero."""
+        from audio.stt_worker import STTStats
+
         stats = STTStats()
 
         assert stats.transcriptions_total == 0
@@ -170,6 +180,8 @@ class TestSTTStats:
 
     def test_update_success(self):
         """Test updating stats with successful transcription."""
+        from audio.stt_worker import STTStats, TranscriptionResult
+
         stats = STTStats()
         result = TranscriptionResult(
             text="Hello",
@@ -192,6 +204,8 @@ class TestSTTStats:
 
     def test_update_empty(self):
         """Test updating stats with empty transcription."""
+        from audio.stt_worker import STTStats, TranscriptionResult
+
         stats = STTStats()
         result = TranscriptionResult(
             text="",
@@ -211,6 +225,8 @@ class TestSTTStats:
 
     def test_update_error(self):
         """Test updating stats with failed transcription."""
+        from audio.stt_worker import STTStats
+
         stats = STTStats()
 
         stats.update_stats(None, 100.0)
@@ -222,6 +238,8 @@ class TestSTTStats:
 
     def test_average_latency(self):
         """Test average latency calculation."""
+        from audio.stt_worker import STTStats, TranscriptionResult
+
         stats = STTStats()
 
         # First transcription
@@ -260,6 +278,8 @@ class TestSTTWorkerTranscribe:
         mock_instance.transcribe = mock_transcribe_gen
 
         # Create worker
+        from audio.stt_worker import STTWorker
+
         worker = STTWorker()
 
         # Create test audio (1 second at 16kHz)
@@ -273,41 +293,56 @@ class TestSTTWorkerTranscribe:
         assert result.language == "en"
         assert result.duration_ms == 1000.0
 
+    @patch("audio.stt_worker.WhisperModel")
     @pytest.mark.asyncio
-    async def test_transcribe_empty_audio(self, *mocks):
+    async def test_transcribe_empty_audio(self, mock_model):
         """Test handling of empty audio."""
-        with patch("audio.stt_worker.WhisperModel"):
-            worker = STTWorker()
+        mock_instance = Mock()
+        mock_model.return_value = mock_instance
 
-            # Empty audio
-            audio = np.array([], dtype=np.float32)
+        from audio.stt_worker import STTWorker
 
-            result = await worker.transcribe(audio)
+        worker = STTWorker()
 
-            assert result.is_valid() is False
-            assert result.text == ""
-            assert worker.stats.transcriptions_empty == 1
+        # Empty audio
+        audio = np.array([], dtype=np.float32)
 
+        result = await worker.transcribe(audio)
+
+        assert result.is_valid() is False
+        assert result.text == ""
+        assert worker.stats.transcriptions_empty == 1
+
+    @patch("audio.stt_worker.WhisperModel")
     @pytest.mark.asyncio
-    async def test_transcribe_invalid_type(self, *mocks):
+    async def test_transcribe_invalid_type(self, mock_model):
         """Test handling of invalid audio type."""
-        with patch("audio.stt_worker.WhisperModel"):
-            worker = STTWorker()
+        mock_instance = Mock()
+        mock_model.return_value = mock_instance
 
-            with pytest.raises(ValueError, match="must be numpy array"):
-                await worker.transcribe("not an array")
+        from audio.stt_worker import STTWorker
 
+        worker = STTWorker()
+
+        with pytest.raises(ValueError, match="must be numpy array"):
+            await worker.transcribe("not an array")
+
+    @patch("audio.stt_worker.WhisperModel")
     @pytest.mark.asyncio
-    async def test_transcribe_multi_channel(self, *mocks):
+    async def test_transcribe_multi_channel(self, mock_model):
         """Test handling of multi-channel audio (should fail)."""
-        with patch("audio.stt_worker.WhisperModel"):
-            worker = STTWorker()
+        mock_instance = Mock()
+        mock_model.return_value = mock_instance
 
-            # Stereo audio (2 channels)
-            audio = np.random.randn(16000, 2).astype(np.float32)
+        from audio.stt_worker import STTWorker
 
-            with pytest.raises(ValueError, match="must be 1D"):
-                await worker.transcribe(audio)
+        worker = STTWorker()
+
+        # Stereo audio (2 channels)
+        audio = np.random.randn(16000, 2).astype(np.float32)
+
+        with pytest.raises(ValueError, match="must be 1D"):
+            await worker.transcribe(audio)
 
     @patch("audio.stt_worker.WhisperModel")
     def test_transcribe_sync(self, mock_model):
@@ -323,6 +358,8 @@ class TestSTTWorkerTranscribe:
             yield mock_segment, mock_info
 
         mock_instance.transcribe = mock_transcribe_gen
+
+        from audio.stt_worker import STTWorker
 
         worker = STTWorker()
         audio = np.random.randn(16000).astype(np.float32)
@@ -352,6 +389,8 @@ class TestSTTWorkerStats:
 
         mock_instance.transcribe = mock_transcribe_gen
 
+        from audio.stt_worker import STTWorker
+
         worker = STTWorker()
         audio = np.random.randn(16000).astype(np.float32)
 
@@ -376,6 +415,8 @@ class TestSTTWorkerStats:
         mock_model.return_value = mock_instance
         mock_instance.transcribe = Mock(return_value=([], Mock(language="en")))
 
+        from audio.stt_worker import STTWorker
+
         worker = STTWorker()
 
         # Simulate some stats
@@ -399,6 +440,8 @@ class TestAudioPreprocessing:
         mock_instance = Mock()
         mock_model.return_value = mock_instance
 
+        from audio.stt_worker import STTWorker
+
         worker = STTWorker()
 
         # Create audio with values > 1.0
@@ -415,6 +458,8 @@ class TestAudioPreprocessing:
         mock_instance = Mock()
         mock_model.return_value = mock_instance
 
+        from audio.stt_worker import STTWorker
+
         worker = STTWorker()
 
         # Already normalized audio
@@ -428,6 +473,8 @@ class TestAudioPreprocessing:
         """Test audio resampling."""
         mock_instance = Mock()
         mock_model.return_value = mock_instance
+
+        from audio.stt_worker import STTWorker
 
         worker = STTWorker()
 
@@ -454,6 +501,7 @@ class TestUtilityFunctions:
         )
 
         mock_instance = Mock()
+        from audio.stt_worker import TranscriptionResult
         mock_result = TranscriptionResult(
             text="File content",
             confidence=0.9,
@@ -467,6 +515,8 @@ class TestUtilityFunctions:
         )
         mock_instance.transcribe.return_value.set_result(mock_result)
         mock_worker.return_value = mock_instance
+
+        from audio.stt_worker import transcribe_file
 
         # Transcribe file
         result = await transcribe_file("test.wav")
@@ -485,6 +535,8 @@ class TestUtilityFunctions:
         mock_config.compute_type = "float16"
         mock_config.language = "en"
         mock_get_config.return_value.stt = mock_config
+
+        from audio.stt_worker import create_from_config
 
         # Create worker
         worker = create_from_config()
@@ -512,6 +564,8 @@ class TestConfigurationIntegration:
 
         mock_instance = Mock()
         mock_model.return_value = mock_instance
+
+        from audio.stt_worker import STTWorker
 
         # Create worker (should use config)
         worker = STTWorker()

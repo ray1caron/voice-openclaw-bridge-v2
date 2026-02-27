@@ -113,6 +113,18 @@ The Voice-OpenClaw Bridge v2 is a bidirectional voice interface that connects au
 - pytest 9.0+
 - pytest-asyncio 1.3+
 - sounddevice (optional, for real audio)
+- `tzdata>=2023.3` (required for Python 3.12 for pydantic-settings timezone support)
+
+### Python 3.12 Specific Requirements
+For Python 3.12 environments, install tzdata:
+```bash
+pip install tzdata
+```
+
+This is required because:
+- `pydantic-settings>=2.0` uses `zoneinfo._tzpath` for timezone configuration
+- Python 3.12 requires timezone database (tzdata) for proper `zoneinfo` support
+- Without tzdata, config loading fails with `KeyError: 'zoneinfo._tzpath'`
 
 ### Environment Variables
 ```bash
