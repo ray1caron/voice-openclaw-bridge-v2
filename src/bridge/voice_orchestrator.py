@@ -21,29 +21,29 @@ from typing import Optional, Callable
 from enum import Enum
 import structlog
 
-from audio.wake_word import (
+from bridge.audio.wake_word import (
     WakeWordDetector,
     WakeWordEvent,
     WakeWordConfig,
     BuiltInWakeWord,
 )
-from audio.stt_worker import (
+from bridge.audio.stt_worker import (
     STTWorker,
     TranscriptionResult,
     STTConfig,
 )
-from audio.tts_worker import (
+from bridge.audio.tts_worker import (
     TTSWorker,
     TTSConfig,
     TTSResult,
     VoiceModel,
 )
-from audio_pipeline import (
+from bridge.audio_pipeline import (
     AudioPipeline,
     AudioConfig,
     AudioState,
 )
-from websocket_client import (
+from bridge.websocket_client import (
     WebSocketClient,
     WebSocketState,
     ConnectionConfig,
