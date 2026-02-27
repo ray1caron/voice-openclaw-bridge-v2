@@ -40,15 +40,14 @@ from audio.tts_worker import (
 )
 from bridge.audio_pipeline import (
     AudioPipeline,
-    AudioConfig,
-    AudioState,
+    PipelineState,
 )
 from bridge.websocket_client import (
     WebSocketClient,
     WebSocketState,
     ConnectionConfig,
 )
-from barge_in import (
+from audio.barge_in import (
     BargeInState,
     BargeInHandler,
     InterruptionEvent,
