@@ -43,8 +43,8 @@ from bridge.audio_pipeline import (
     PipelineState,
 )
 from bridge.websocket_client import (
-    WebSocketClient,
-    WebSocketState,
+    OpenClawWebSocketClient as WebSocketClient,
+    ConnectionState as WebSocketState,
     ConnectionConfig,
 )
 from audio.barge_in import (
