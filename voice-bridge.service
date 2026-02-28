@@ -1,0 +1,31 @@
+[Unit]
+Description=Voice Bridge v2 - Bidirectional Voice Interface for OpenClaw
+After=network.target sound.target
+Wants=sound.target
+
+[Service]
+Type=simple
+User=hal
+Group=hal
+WorkingDirectory=/home/hal/.openclaw/workspace/voice-bridge-v2
+Environment="PATH=/home/hal/.local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH=/home/hal/.openclaw/workspace/voice-bridge-v2/src"
+
+# Main command
+ExecStart=/usr/bin/python3 -m bridge.main
+
+# Auto-restart on failure
+Restart=always
+RestartSec=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=voice-bridge
+
+# Security
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
