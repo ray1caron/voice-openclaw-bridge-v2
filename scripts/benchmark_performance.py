@@ -64,7 +64,7 @@ class PerformanceBenchmark:
             start = time.perf_counter()
 
             # Simulate config loading
-            from config.config import get_config
+            from bridge.config import get_config
             config = get_config()
 
             end = time.perf_counter()

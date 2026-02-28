@@ -10,7 +10,7 @@ import sys
 import signal
 import structlog
 
-from config.config import get_config
+from bridge.config import get_config
 from bridge.voice_orchestrator import VoiceOrchestrator
 
 logger = structlog.get_logger()
