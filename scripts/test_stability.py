@@ -49,6 +49,7 @@ class StabilityTest:
             wake_word_keyword="computer",
             wake_word_sensitivity=0.85,
             barge_in_enabled=True,
+            stt_compute_type="float16",  # Valid value for faster-whisper
         )
         orchestrator = VoiceOrchestrator(config=config)
 
