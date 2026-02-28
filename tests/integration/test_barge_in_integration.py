@@ -14,7 +14,7 @@ from audio.barge_in import (
     BargeInHandler, BargeInConfig, BargeInState, InterruptionEvent
 )
 from bridge.barge_in_integration import AudioPipelineBargeIn
-from bridge.websocket_client import WebSocketClient, ConnectionState
+from bridge.websocket_client import OpenClawWebSocketClient as WebSocketClient, ConnectionState
 
 
 class TestBargeInAudioPipelineIntegration:
