@@ -147,6 +147,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "hardware: marks tests that require hardware",
+    "e2e: marks tests as end-to-end tests",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning:pytest_asyncio.*:",

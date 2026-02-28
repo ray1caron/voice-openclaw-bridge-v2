@@ -453,6 +453,7 @@ class VoiceOrchestrator:
                 logger.info("voice_orchestrator.barge_in_interrupted")
                 await self._barge_in.handle_interruption()
                 self.session.interrupted = True
+                self.stats.interrupted_interactions += 1
                 break
 
             # Play audio chunk

@@ -8,9 +8,11 @@ Uses mocks for OpenClaw to avoid needing server connection.
 from __future__ import annotations
 
 import asyncio
+import time
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 import numpy as np
+import soundfile as sf
 
 
 class MockOpenClawServer:
@@ -96,7 +98,7 @@ class TestVoiceAssistantE2E:
         orchestrator._stt.transcribe = AsyncMock(return_value=mock_transcription)
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(return_value=mock_server.get_response())
+        orchestrator._websocket.send_voice_input = AsyncMock(side_effect=lambda text: mock_server.get_response())
 
         orchestrator._tts = AsyncMock()
 
@@ -136,9 +138,6 @@ class TestVoiceAssistantE2E:
             frame_index=100,
         )
 
-        # Mock audio
-        mock_audio = b"mock_audio_data"
-
         # Mock transcription
         mock_transcription = TranscriptionResult(
             text="Hello",
@@ -171,15 +170,21 @@ class TestVoiceAssistantE2E:
         orchestrator._wake_word = AsyncMock()
         orchestrator._wake_word.listen = AsyncMock(return_value=wake_event)
 
+        # Load real test audio
+        audio, sr = sf.read("tests/fixtures/audio/speech_like_2s.wav")
+        duration_ms = (len(audio) / sr) * 1000
+
         orchestrator._audio = AsyncMock()
-        orchestrator._audio.capture_audio = AsyncMock(return_value=(1000.0, mock_audio))
+        orchestrator._audio.capture_audio = AsyncMock(return_value=(duration_ms, audio.astype(np.float32)))
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = AsyncMock()
         orchestrator._stt.transcribe = AsyncMock(return_value=mock_transcription)
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(return_value=mock_server.get_response())
+        # Mock both send and receive
+        orchestrator._websocket.send_voice_input = AsyncMock(return_value=None)
+        orchestrator._websocket.receive_response = AsyncMock(return_value=mock_server.get_response())
 
         orchestrator._tts = AsyncMock()
         orchestrator._tts.speak = interrupted_tts
@@ -218,7 +223,7 @@ class TestVoiceAssistantE2E:
 
         interaction_count = 0
 
-        def get_mock_response(text):
+        def get_mock_response():
             nonlocal interaction_count
             response = responses[interaction_count % len(responses)]
             interaction_count += 1
@@ -238,7 +243,10 @@ class TestVoiceAssistantE2E:
         orchestrator._wake_word.listen = AsyncMock(return_value=wake_event)
 
         orchestrator._audio = AsyncMock()
-        orchestrator._audio.capture_audio = AsyncMock(return_value=(1000.0, b"mock_audio"))
+                # Load real test audio
+        audio, sr = sf.read("tests/fixtures/audio/speech_like_2s.wav")
+        duration_ms = (len(audio) / sr) * 1000
+        orchestrator._audio.capture_audio = AsyncMock(return_value=(duration_ms, audio.astype(np.float32)))
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = AsyncMock()
@@ -251,7 +259,9 @@ class TestVoiceAssistantE2E:
         orchestrator._tts.speak = mock_tts
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(side_effect=get_mock_response)
+        # Mock both send and receive
+        orchestrator._websocket.send_voice_input = AsyncMock(return_value=None)
+        orchestrator._websocket.receive_response = AsyncMock(side_effect=get_mock_response)
 
         orchestrator._barge_in = AsyncMock()
         orchestrator._barge_in.check_interruption = Mock(return_value=False)
@@ -354,7 +364,10 @@ class TestVoiceAssistantE2E:
         orchestrator._wake_word.listen = AsyncMock(return_value=wake_event)
 
         orchestrator._audio = AsyncMock()
-        orchestrator._audio.capture_audio = AsyncMock(return_value=(1000.0, b"mock_audio"))
+                # Load real test audio
+        audio, sr = sf.read("tests/fixtures/audio/speech_like_2s.wav")
+        duration_ms = (len(audio) / sr) * 1000
+        orchestrator._audio.capture_audio = AsyncMock(return_value=(duration_ms, audio.astype(np.float32)))
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = AsyncMock()
@@ -374,7 +387,10 @@ class TestVoiceAssistantE2E:
         orchestrator._tts.speak = mock_tts
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(return_value=mock_server.get_response())
+        # Mock send_voice_input (doesn't need to return anything)
+        orchestrator._websocket.send_voice_input = AsyncMock(return_value=None)
+        # Mock receive_response to return the actual response dict
+        orchestrator._websocket.receive_response = AsyncMock(return_value=mock_server.get_response())
 
         orchestrator._barge_in = AsyncMock()
         orchestrator._barge_in.check_interruption = Mock(return_value=False)
@@ -410,7 +426,10 @@ class TestVoiceAssistantE2E:
         orchestrator._wake_word.listen = AsyncMock(return_value=wake_event)
 
         orchestrator._audio = AsyncMock()
-        orchestrator._audio.capture_audio = AsyncMock(return_value=(2000.0, b"mock"))
+                # Load real test audio
+        audio, sr = sf.read("tests/fixtures/audio/speech_like_2s.wav")
+        duration_ms = (len(audio) / sr) * 1000
+        orchestrator._audio.capture_audio = AsyncMock(return_value=(duration_ms, audio.astype(np.float32)))
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = AsyncMock()
@@ -429,17 +448,12 @@ class TestVoiceAssistantE2E:
         orchestrator._tts.speak = mock_tts
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(return_value=mock_server.get_response())
+        # Mock both send and receive
+        orchestrator._websocket.send_voice_input = AsyncMock(return_value=None)
+        orchestrator._websocket.receive_response = AsyncMock(return_value=mock_server.get_response())
 
         orchestrator._barge_in = AsyncMock()
         orchestrator._barge_in.check_interruption = Mock(return_value=False)
-
-        # Simulate varying interaction times by adding delays
-        async def slow_interaction(text: str):
-            await asyncio.sleep(0.01)
-            return mock_server.get_response()
-
-        orchestrator._websocket.send_voice_input = AsyncMock(side_effect=slow_interaction)
 
         # Run interactions
         for _ in range(5):
@@ -502,7 +516,10 @@ class TestPerformanceBenchmarks:
         orchestrator._wake_word.listen = AsyncMock(return_value=wake_event)
 
         orchestrator._audio = AsyncMock()
-        orchestrator._audio.capture_audio = AsyncMock(return_value=(1000.0, b"mock"))
+                # Load real test audio
+        audio, sr = sf.read("tests/fixtures/audio/speech_like_2s.wav")
+        duration_ms = (len(audio) / sr) * 1000
+        orchestrator._audio.capture_audio = AsyncMock(return_value=(duration_ms, audio.astype(np.float32)))
         orchestrator._audio.play_audio = AsyncMock()
 
         orchestrator._stt = AsyncMock()
@@ -521,7 +538,7 @@ class TestPerformanceBenchmarks:
         orchestrator._tts.speak = mock_tts
 
         orchestrator._websocket = AsyncMock()
-        orchestrator._websocket.send_voice_input = AsyncMock(return_value=mock_server.get_response())
+        orchestrator._websocket.send_voice_input = AsyncMock(side_effect=lambda text: mock_server.get_response())
 
         orchestrator._barge_in = AsyncMock()
         orchestrator._barge_in.check_interruption = Mock(return_value=False)
