@@ -29,8 +29,8 @@ def main():
         bug = tracker.get_bug(bug_id)
         if bug:
             old_status = bug.status  # BugReport object, not dict
-            # Update status
-            tracker.update_bug_status(bug_id, BugStatus.FIXED)
+            # Update status (correct method name)
+            tracker.update_status(bug_id, BugStatus.FIXED)
             print(f"✓ Bug #{bug_id}: {old_status} → FIXED")
             print(f"  Title: {bug.title}")
         else:
