@@ -5,6 +5,10 @@ Stability Testing Framework
 Runs 8-hour stability test with monitoring and health checks.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
 import asyncio
 import time
 import json
