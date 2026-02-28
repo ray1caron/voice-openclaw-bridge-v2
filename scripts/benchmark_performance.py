@@ -107,9 +107,10 @@ class PerformanceBenchmark:
 
             # Simulate buffer operation
             from bridge.audio_buffer import AudioBuffer
-            buffer = AudioBuffer(capacity=16000)
-            buffer.write(audio)
-            buffer.read(len(audio))
+            # Correct params: max_frames=20, frame_size=480 (30ms @ 16kHz = 480 samples)
+            buffer = AudioBuffer(max_frames=20, frame_size=480, dtype=np.float32)
+            buffer.write(audio[:480])  # Write one frame
+            buffer.read(480)  # Read one frame
 
             end = time.perf_counter()
             latencies.append((end - start) * 1000)  # ms
