@@ -28,11 +28,11 @@ def main():
     for bug_id in bug_ids:
         bug = tracker.get_bug(bug_id)
         if bug:
-            old_status = bug.get('status')
+            old_status = bug.status  # BugReport object, not dict
             # Update status
             tracker.update_bug_status(bug_id, BugStatus.FIXED)
             print(f"✓ Bug #{bug_id}: {old_status} → FIXED")
-            print(f"  Title: {bug.get('title')}")
+            print(f"  Title: {bug.title}")
         else:
             print(f"✗ Bug #{bug_id}: NOT FOUND")
 
