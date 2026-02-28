@@ -74,7 +74,10 @@ class SystemSnapshot:
                 {"name": d.get("name"), "channels": d.get("max_input_channels", 0)}
                 for d in devices
             ]
-        except:
+        except (ImportError, Exception) as e:
+            import structlog
+            logger = structlog.get_logger()
+            logger.warning("bug_tracker.audio_devices_failed", error=str(e))
             pass
         
         # Config hash for detecting config-related bugs
@@ -84,7 +87,10 @@ class SystemSnapshot:
                 import hashlib
                 config_str = json.dumps(config.model_dump(), sort_keys=True)
                 config_hash = hashlib.md5(config_str.encode()).hexdigest()[:8]
-            except:
+            except (json.JSONDecodeError, TypeError, AttributeError, Exception) as e:
+                import structlog
+                logger = structlog.get_logger()
+                logger.warning("bug_tracker.config_hash_failed", error=str(e))
                 pass
         
         # Uptime if tracker has start time
