@@ -1,514 +1,549 @@
-# Hal Voice Assistant - User Guide
+# Voice-OpenClaw Bridge v2 - User Guide
 
-Complete instructions for using your local AI voice assistant.
-
-**Repository:** https://github.com/ray1caron/local-voice  
-**Location:** `~/openclaw-workspace/voice-assistant/`  
-**Hardware:** RTX 5070 (GPU-accelerated)
+**Version:** 1.0.0-beta
+**Last Updated:** 2026-02-28
+**Status:** Production Ready ✅
 
 ---
 
 ## Quick Start
 
-Open a terminal and run:
+### Production Usage (Systemd)
 
 ```bash
-cd ~/openclaw-workspace/voice-assistant
-./run_hal.sh
+# Start service
+sudo systemctl start voice-bridge.service
+
+# Check status
+sudo systemctl status voice-bridge.service
+
+# View logs
+journalctl -u voice-bridge.service -f
 ```
 
-That's it! The assistant will start and tell you what to do.
+### Development Usage
+
+```bash
+# Run directly
+python3 -m bridge.main
+
+# Run with specific config
+python3 -m bridge.main --config /path/to/config.yaml
+```
+
+---
+
+## Table of Contents
+
+1. [How It Works](#how-it-works)
+2. [First Use](#first-use)
+3. [Voice Interaction](#voice-interaction)
+4. [Common Tasks](#common-tasks)
+5. [Configuration](#configuration)
+6. [Monitoring & Logs](#monitoring--logs)
+7. [Bug Tracking](#bug-tracking)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## How It Works
 
-Your voice assistant follows this flow:
+Voice-OpenClaw Bridge enables voice interactions with OpenClaw through:
 
 ```
-You Speak → Wake Word → Question → Processing → Hal Speaks
+You Speak → Wake Word → Audio Capture → STT → OpenClaw → TTS → Audio Output
 ```
 
-1. **Wake Word Detection** (Porcupine) - Listens for "computer"
-2. **Speech Recognition** (Whisper) - Converts speech to text
-3. **Thinking** (Ollama) - Processes your question
-4. **Speaking** (Piper) - Converts answer to speech
+### Flow
+
+1. **Wake Word** - Say "computer" to activate
+2. **Audio Capture** - Records your speech until silence
+3. **STT (Speech-to-Text)** - Transcribes audio to text
+4. **OpenClaw** - Sends text to OpenClaw via WebSocket
+5. **Response Filter** - Filters out thinking/tool calls
+6. **TTS (Text-to-Speech)** - Converts response to audio
+7. **Audio Playback** - Plays the response
+8. **Barge-In** - Can interrupt during playback
 
 ---
 
-## Basic Usage
+## First Use
 
-### Starting the Assistant
+### Step 1: Wake Up the Assistant
 
-There are multiple ways to start:
+Say **"computer"** clearly.
 
-**Method 1: Launcher Script (Recommended)**
-```bash
-./run_hal.sh
+**Response:** Assistant says "listening..." and starts recording.
+
+### Step 2: Ask a Question
+
+Wait 1-2 seconds for "listening...", then speak:
+
 ```
-
-**Method 2: Direct Python**
-```bash
-./venv/bin/python voice.py
+"computer, what's the weather today?"
 ```
-
-**Method 3: With Virtual Environment**
-```bash
-source venv/bin/activate
-python voice.py
-```
-
----
-
-## Speaking to Hal
-
-### Step 1: Wake Word
-
-Say **"computer"** clearly to activate Hal.
-
-**What happens:**
-- Hal is listening constantly
-- When you say "computer", wake word detector triggers
-- Hal responds with "listening..."
-
-### Step 2: Ask Your Question
-
-Wait 1-2 seconds for "listening...", then ask anything:
-
-- "What time is it?"
-- "Tell me a joke"
-- "What is the capital of Japan?"
-- "Explain quantum computing"
-- "What's 15 times 37?"
 
 ### Step 3: Listen to Response
 
-Hal will:
-1. Convert speech to text (Whisper)
-2. Think about answer (Ollama qwen2.5:14b)
-3. Speak response (Piper TTS)
+Assistant processes and responds with audio.
 
-**Typical response time:** 1-3 seconds
+**Response:** "The weather today is..."
 
-### Step 4: Continue or Stop
+### Step 4: Ask Follow-up Questions
 
-- **Say "computer" again** for another question
-- **Press Ctrl+C** to stop the assistant
+Continue conversation without repeating wake word:
 
----
-
-## Commands Reference
-
-### Launcher Commands
-
-| Command | Description |
-|---------|-------------|
-| `./run_hal.sh` | Run full voice assistant (default) |
-| `./run_hal.sh wakeword` | Test wake word detection only |
-| `./run_hal.sh status` | Check system status |
-| `./run_hal.sh setup` | Run setup diagnostics |
-| `./run_hal.sh help` | Show all commands |
-
-### Wake Word Test
-
-Test just the wake word (faster, lighter):
-
-```bash
-./run_hal.sh wakeword
+```
+"what about tomorrow?"
 ```
 
-**What to do:**
-1. Wait for "Listening for wake word..."
-2. Say "computer"
-3. Test exits when detected
-
-Useful for checking microphone is working.
+**Note:** After waking up, the assistant stays active for timeout period (default 30 seconds).
 
 ---
 
-## Example Conversations
-
-### Example 1: Simple Question
-**You:** "Computer"
-**Hal:** [listening indicator]
-**You:** "What time is it?"
-**Hal:** "It's 2:15 PM."
-
-### Example 2: Follow-up
-**You:** "Computer"
-**You:** "What day is it?"
-**Hal:** "It's Friday, February 20th."
-**You:** "Computer"
-**You:** "Thanks, Hal"
-**Hal:** "You're welcome!"
-
-### Example 3: Knowledge Question
-**You:** "Computer"
-**You:** "What is the speed of light?"
-**Hal:** "The speed of light is approximately 299,792 kilometers per second."
-
----
-
-## Tips for Best Results
-
-### Microphone
-- **Speak clearly** - Don't mumble
-- **Moderate volume** - Not too loud, not too quiet
-- **Reduce background noise** - Turn off TV/music if possible
-- **3-6 inches from mic** - Optimal distance
+## Voice Interaction
 
 ### Wake Word
-- **"Computer"** is the wake word (can be changed in code)
-- **Built-in alternatives:** jarvis, alexa, hey google
-- **Custom wake words:** Require Porcupine account
 
-### Questions
-- **Keep it natural** - Ask as you would to a person
-- **One question at a time** - Wait for response
-- **Short questions** - Long speeches may get cut off
+**Keyword:** "computer"
 
-### Interrupting
-- **Barge-in supported** - Say "computer" while Hal is talking to interrupt
-- **Stop speaking** - Hal will detect silence and stop
+**Tips:**
+- Speak clearly and at normal volume
+- Wait 1-2 seconds after waking before speaking
+- Wake word can be reconfigured in settings
+
+### Asking Questions
+
+**After wake word:**
+- Speak naturally at normal speed
+- Complete your thought (wait for silence detection)
+- Assistant will transcribe the whole sentence
+
+**Example prompts:**
+- Information: "What's the capital of France?"
+- Calculation: "What's 123 times 45?"
+- Creative: "Write a haiku about cats"
+- Assistance: "Remind me to call mom at 5pm"
+
+### Barge-In (Interruption)
+
+**Interrupt while assistant is speaking:**
+
+Just start speaking during TTS playback.
+
+**What happens:**
+- Assistant stops speaking immediately
+- Wake word detection reactivates
+- Can ask new question
+
+**Latency:** <100ms interruption time
+
+### Conversation Context
+
+The assistant maintains context from previous questions:
+
+```
+User: "Who is Albert Einstein?"
+Assistant: "Albert Einstein was a German theoretical physicist..."
+
+User: "When was he born?"
+Assistant: "He was born on March 14, 1879..."
+```
+
+Context window preserves last several interactions.
 
 ---
 
-## Troubleshooting
+## Common Tasks
 
-### "No microphone detected"
+### Get Current Time
 
-**Cause:** Microphone not connected or not recognized
-
-**Fix:**
-```bash
-# Check connected microphones
-arecord -l
-
-# If none listed:
-# 1. Check USB connection
-# 2. Try different USB port
-# 3. Check Ubuntu Settings → Sound → Input
+```
+"computer, what time is it?"
 ```
 
-### "Wake word not working"
+### Get Weather
 
-**Cause:** Audio too quiet, background noise, or wrong device
-
-**Fix:**
-1. **Test microphone:** `arecord -d 5 test.wav && aplay test.wav`
-2. **Check levels:** Ubuntu Settings → Sound → Input
-3. **Run wake word test only:** `./run_hal.sh wakeword`
-4. **Speak louder and clearer**
-
-### "Slow response time"
-
-**Cause:** First run, GPU not being used, or model loading
-
-**Fix:**
-```bash
-# Check GPU is being used
-nvidia-smi
-
-# Should show python using GPU memory
-# If not, check workers.py has:
-# WHISPER_DEVICE = "cuda"
-# WHISPER_COMPUTE_TYPE = "float16"
+```
+"computer, what's the weather today?"
 ```
 
-### "Out of memory error"
+### Set Reminder
 
-**Cause:** VRAM exhausted (RTX 5070 has 16GB)
-
-**Fix:**
-```bash
-# Check VRAM usage
-watch -n 1 nvidia-smi
-
-# If full, use smaller model in workers.py:
-# WHISPER_MODEL = "small"  # Instead of "medium"
-# Uses 2GB instead of 5GB
+```
+"computer, remind me to call mom at 5pm"
 ```
 
-### "Hal speaks too fast/slow"
+### Perform Calculation
 
-**Cause:** Token streaming or TTS settings
-
-**Fix:**
-- Normal - streaming is designed for low latency
-- If choppy: Check speakers, reduce system load
-
-### "No audio output"
-
-**Cause:** Wrong audio device selected
-
-**Fix:**
-```bash
-# List audio devices
-./venv/bin/python -c "import sounddevice as sd; print(sd.query_devices())"
-
-# Check Ubuntu Settings → Sound → Output
+```
+"computer, what's 123 times 456?"
 ```
 
----
+### Get Information
 
-## Voice Commands Cheat Sheet
+```
+"computer, tell me about the history of Rome"
+```
 
-### Time & Date
-- "What time is it?"
-- "What day is today?"
-- "What's today's date?"
+### Tell Joke
 
-### Math
-- "What's 15 times 23?"
-- "Calculate 156 divided by 4"
-- "What's the square root of 144?"
+```
+"computer, tell me a joke"
+```
 
-### General Knowledge
-- "Who invented the telephone?"
-- "What is the capital of France?"
-- "How far is the moon?"
-- "Explain photosynthesis"
+### Write Code
 
-### Fun
-- "Tell me a joke"
-- "Give me a fun fact"
-- "What's a good movie?"
+```
+"computer, write a Python function to reverse a list"
+```
 
-### System
-- "Computer" - activates listening
-- Ctrl+C - stops assistant
+### Translate
+
+```
+"computer, translate 'hello' to Spanish"
+```
+
+### Summarize Text
+
+```
+"computer, summarize this article..."
+```
 
 ---
 
 ## Configuration
 
-### Changing Wake Word
+### Audio Settings
 
-Edit `wakeword.py`:
+Modify `~/.config/voice-bridge/config.yaml`:
 
-```python
-# Free built-in options:
-WAKE_WORD = "computer"  # default
-WAKE_WORD = "jarvis"
-WAKE_WORD = "alexa"
-WAKE_WORD = "hey google"
-
-# Multiple wake words:
-WAKE_WORDS = ["computer", "jarvis"]
+```yaml
+audio:
+  input_device: "default"  # Your microphone
+  output_device: "default"  # Your speakers
+  sample_rate: 16000
+  chunk_size: 1024
 ```
 
-### Changing Voice Model
+**Discover available devices:**
+```bash
+python3 -m bridge.main setup
+```
 
-Download a different Piper voice:
+### OpenClaw Connection
+
+```yaml
+openclaw:
+  backend_url: "ws://localhost:8765"
+  session_id: "voice-session"
+  timeout: 30
+```
+
+### Response Filtering
+
+**What gets spoken:**
+- ✅ Final responses
+- ✅ Questions from OpenClaw
+- ✅ Short confirmations
+
+**What stays silent:**
+- ❌ Thinking messages
+- ❌ Tool call messages
+- ❌ Planning messages
+- ❌ Progress indicators
+
+You can adjust filtering in config.
+
+---
+
+## Monitoring & Logs
+
+### Service Status
 
 ```bash
-cd voices
-# Download desired voice from:
-# https://github.com/rhasspy/piper/blob/master/VOICES.md
+# Check if running
+sudo systemctl status voice-bridge.service
 
-# Example: Ryan (male voice)
-wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/medium/en_US-ryan-medium.onnx
-wget https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/medium/en_US-ryan-medium.onnx.json
+# View recent logs
+journalctl -u voice-bridge.service -n 50
+
+# Follow logs live
+journalctl -u voice-bridge.service -f
 ```
 
-Then update `workers.py`:
-```python
-PIPER_VOICE = "./voices/en_US-ryan-medium.onnx"
-PIPER_VOICE_JSON = "./voices/en_US-ryan-medium.json"
+### Log Messages
+
+**Normal operation:**
+```
+[INFO] Wake word detected
+[INFO] Audio captured (2.3s)
+[INFO] Transcription: what's the weather
+[INFO] Speaking response...
 ```
 
-### Changing AI Model
-
-Edit `voice.py`:
-
-```python
-# Faster, smaller model:
-LLM_MODEL = "qwen2.5:7b"  # 4GB VRAM
-
-# Larger, smarter model:
-LLM_MODEL = "qwen2.5:32b"  # 16GB VRAM (max out)
-
-# Different model entirely:
-LLM_MODEL = "llama3.2:3b"
+**Warnings:**
+```
+[WARNING] Audio buffer nearly full
+[WARNING] High transcription latency
 ```
 
-### Changing Speech Recognition
-
-Edit `workers.py`:
-
-```python
-# Accuracy vs Speed tradeoff:
-WHISPER_MODEL = "tiny"    # 1GB, fastest, less accurate
-WHISPER_MODEL = "base"    # 2GB, fast
-WHISPER_MODEL = "small"   # 2GB, good balance
-WHISPER_MODEL = "medium"  # 5GB, best balance (default)
-WHISPER_MODEL = "large-v3" # 10GB, most accurate
+**Errors:**
 ```
+[ERROR] Microphone not found
+[ERROR] OpenClaw connection failed
+[ERROR] STT transcription failed
+```
+
+### Statistics
+
+The assistant tracks statistics including:
+- Number of interactions
+- Total speaking time
+- Number of interruptions/barge-ins
+- Average transcription latency
+- Average TTS latency
+
+---
+
+## Bug Tracking
+
+v1.0.0-beta includes automated bug tracking.
+
+### Viewing Bugs
+
+```bash
+# List all bugs
+python -m bridge.bug_cli list
+
+# Show specific bug
+python -m bridge.bug_cli show <bug_id>
+
+# Get statistics
+python -m bridge.bug_cli stats
+```
+
+### Exporting Bugs
+
+```bash
+# Export to JSON
+python -m bridge.bug_cli export bugs.json
+
+# Export to Markdown
+python -m bridge.bug_cli export bugs.md --format markdown
+
+# Export to CSV
+python -m bridge.bug_cli export bugs.csv --format csv
+```
+
+### Automatic Bug Capture
+
+Errors are automatically captured with full context:
+- Python version and platform
+- Audio devices
+- Configuration state
+- Stack trace
+
+**See:** [BUG_TRACKER.md](BUG_TRACKER.md) for complete guide
 
 ---
 
 ## Advanced Usage
 
-### Running Without Wake Word
+### Voice Commands
 
-To always listen (no wake word):
+The assistant can understand special commands:
 
-Edit `voice.py`:
-```python
-USE_WAKE_WORD = False
+```
+"computer, set volume to 50%"
+"computer, pause music"
+"computer, what can you do?"
 ```
 
-### Custom Personality
+**Note:** Command support depends on OpenClaw configuration.
 
-Edit the system prompt in `voice.py`:
+### Custom Wake Word
 
-```python
-SYSTEM_PROMPT = """
-You are Hal, a helpful AI assistant. Answer concisely and naturally, 
-as if speaking in conversation. Keep responses to 1-2 sentences when possible.
-"""
+Use Porcupine console to create custom wake word:
+1. Sign up at https://console.picovoice.ai/
+2. Train custom wake word
+3. Get access key
+4. Update config with access key
+
+---
+
+## Troubleshooting
+
+### Wake Word Not Detected
+
+**Cause:** Microphone not working or configured incorrectly.
+
+**Solutions:**
+```bash
+# Check microphone
+python3 -c "import sounddevice as sd; print(sd.query_devices())"
+
+# Rerun audio setup
+python3 -m bridge.main setup
+
+# Check system audio
+pactl list sources  # PulseAudio
+arecord -l  # ALSA
 ```
 
-Change to:
-```python
-SYSTEM_PROMPT = """
-You are a wise old wizard. Speak in riddles and mystical terms.
-Keep it brief but cryptic.
-"""
+### No Audio Output
+
+**Cause:** Speaker not configured.
+
+**Solutions:**
+```bash
+# Check speakers
+aplay -L
+
+# Rerun audio setup
+python3 -m bridge.main setup
+
+# Test system audio
+speaker-test -t wav -c 2
 ```
 
-### API Mode
+### OpenClaw Connection Failed
 
-Use programmatically:
+**Cause:** OpenClaw not running or wrong URL.
 
-```python
-from voice import LocalVoice
+**Solutions:**
+```bash
+# Check OpenClaw status
+openclaw status
 
-assistant = LocalVoice()
-assistant.run()  # Starts interactive mode
+# Test connection
+wscat -c ws://localhost:8765
+
+# Check config
+grep backend_url ~/.config/voice-bridge/config.yaml
+```
+
+### Slow Transcription
+
+**Cause:** STT model too large or CPU-only.
+
+**Solutions:**
+```yaml
+# Use smaller model
+stt:
+  model_size: "base"  # or "tiny"
+
+# Use GPU if available
+stt:
+  device: "cuda"
+```
+
+### Barge-In Not Working
+
+**Cause:** Audio buffer settings or VAD sensitivity.
+
+**Solutions:**
+```yaml
+# Adjust VAD
+audio:
+  vad_aggressiveness: 3  # 0-3, higher = more sensitive
+
+# Adjust buffer
+audio:
+  buffer_size: 2048  # Lower = faster interruption
 ```
 
 ---
 
-## Files & Directories
+## Best Practices
 
-```
-voice-assistant/
-├── run_hal.sh              # Launcher script ⭐ START HERE
-├── voice.py                 # Main assistant
-├── wakeword.py              # Wake word module
-├── workers.py               # STT/TTS workers
-├── test_wakeword.py         # Wake word test
-├── venv/                    # Python environment
-│   └── bin/python           # Python interpreter
-├── models/                  # Whisper models
-│   └── models--Systran--faster-whisper-medium/
-├── voices/                  # Piper voices
-│   ├── en_US-amy-medium.onnx
-│   └── en_US-amy-medium.onnx.json
-├── README.md                # Project readme
-├── INSTALL.md               # Installation guide
-└── USER_GUIDE.md            # This file
-```
+### Speaking
 
----
+- **Speak clearly** at normal volume
+- **Wait 1-2 seconds** after wake word before speaking
+- **Complete your thought** (let silence detection finish)
+- **Ask one question at a time** for best accuracy
 
-## VRAM Usage
+### Environment
 
-Current configuration:
-- Whisper medium: ~5GB
-- Ollama qwen2.5:14b: ~8GB
-- **Total: ~13GB / 16GB** ✅
+- **Quiet environment** works best
+- **Avoid background noise** if possible
+- **Position microphone** close to mouth (1-2 feet)
+- **Test audio levels** in setup wizard
 
-Room for other apps: ~3GB
+### Performance
+
+- **Use wired network** if remote OpenClaw
+- **Use GPU** for STT to reduce latency
+- **Use smaller model** if CPU-only
 
 ---
 
-## Updates
+## Tips & Tricks
 
-### Updating Code
-```bash
-git pull origin master
-```
+### Faster Responses
 
-### Updating Models
-```bash
-# Re-download whisper model
-rm -rf models/
-./run_hal.sh
-# Auto-downloads on first run
-```
+- Use smaller STT model (`base` or `tiny`)
+- Use GPU for STT
+- Reduce audio chunk size
 
-### Updating Dependencies
-```bash
-./venv/bin/pip install --upgrade faster-whisper piper-tts ollama
-```
+### Better Accuracy
+
+- Speak clearly and slowly
+- Use a good quality microphone
+- Reduce background noise
+
+### Lower CPU Usage
+
+- Use larger STT model (fewer compute cycles)
+- Increase audio chunk size
+- Reduce concurrent sessions
 
 ---
 
 ## Getting Help
 
-### Check Status
-```bash
-./run_hal.sh status
-```
+### Documentation
 
-### Test Components
-```bash
-# Wake word only
-./run_hal.sh wakeword
+- [README.md](README.md) - Overview
+- [INSTALL.md](INSTALL.md) - Installation
+- [BUG_TRACKER.md](BUG_TRACKER.md) - Bug tracking guide
 
-# Full assistant
-./run_hal.sh
+### Community
 
-# Setup diagnostics
-./run_hal.sh setup
-```
+- **Issues:** https://github.com/ray1caron/voice-openclaw-bridge-v2/issues
+- ** Discussions:** Coming soon
 
-### Logs
+### Support
 
-View recent output:
-```bash
-# Last run
-./run_hal.sh 2>&1 | tee hal.log
-```
+- Check logs: `journalctl -u voice-bridge.service -n 100`
+- Run bug tracker: `python -m bridge.bug_cli list`
+- Report issues with full context
 
 ---
 
-## System Requirements
+## FAQ
 
-### Minimum
-- RTX 5070 or equivalent (16GB VRAM)
-- 16GB system RAM
-- Microphone
-- Speakers/headphones
-- Ubuntu 24.04
+**Q: Can I change the wake word?**
 
-### Recommended
-- RTX 5070 (confirms GPU acceleration)
-- USB microphone or headset
-- Quiet environment
-- Python 3.12+
+A: Yes! Use Porcupine console to create custom wake word.
 
----
+**Q: Does this work offline?**
 
-## Privacy & Security
+A: STT and TTS run locally, but OpenClaw requires connection to backend (can be localhost).
 
-✅ **Fully Local** - Nothing leaves your machine  
-✅ **No Cloud** - No internet required after setup  
-✅ **Your Data** - Only you can access conversations  
-✅ **Open Source** - Code inspectable and modifiable
+**Q: Can I use a different language?**
+
+A: Yes! Configure language in settings. See INSTALL.md for details.
+
+**Q: How much RAM does it use?**
+
+A: ~1-2 GB with medium-sized models. Larger models use more.
+
+**Q: Can I run multiple instances?**
+
+A: Yes! Each instance needs its own config and session ID.
 
 ---
 
-## License
-
-Based on Robin-07/local-voice, modified by ray1caron.
-
----
-
-**Version:** 1.0  
-**Last Updated:** 2026-02-20  
-**Status:** Production Ready ✅
-
-Enjoy your conversations with Hal! 🎙️
+**Voice-OpenClaw Bridge v2 v1.0.0-beta - Production Ready** ✅
